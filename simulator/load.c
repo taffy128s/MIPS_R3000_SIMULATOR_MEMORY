@@ -48,7 +48,7 @@ void dealWithDImg() {
         temp = (temp << 8) + (unsigned char) dImgBuffer[i];
     // Write the value to D memory.
     for (i = 8; i < 8 + 4 * temp; i++)
-        dMemory[idx++] = dImgBuffer[i];
+        dDisk[idx++] = dImgBuffer[i];
 }
 
 void dealWithIImg() {
@@ -64,5 +64,5 @@ void dealWithIImg() {
     // Write the value to I memory.
     idx = PC;
     for (i = 8; i < 8 + 4 * temp; i++)
-        iMemory[idx++] = iImgBuffer[i];
+        iDisk[idx++] = iImgBuffer[i];
 }
