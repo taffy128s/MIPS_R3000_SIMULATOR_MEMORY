@@ -3,4 +3,6 @@ CMP
 snapshot.rpt
 error_dump.rpt
 report.rpt
+dimage.bin
+iimage.bin
 

@@ -445,10 +445,16 @@ int main(int argc, char **argv) {
         printf("Wrong input format.\n");
         exit(0);
     }
+	
 	iCacheLength = totalSizeOfICache / blockSizeOfICache / setAssOfICache;
 	dCacheLength = totalSizeOfDCache / blockSizeOfDCache / setAssOfDCache;
 	iPageTableEntries = 1024 / iMemoryPageSize;
 	dPageTableEntries = 1024 / dMemoryPageSize;
+	
+	initTLB();
+	initPTE();
+	initCache();
+	initMemory();
 	
     openNLoadFiles();
     dealWithDImg();
