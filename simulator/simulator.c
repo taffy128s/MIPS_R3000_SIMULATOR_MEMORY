@@ -11,6 +11,7 @@ Date: Ongoing
 #include "decoder.h"
 #include "output.h"
 #include "load.h"
+#include "cmp.h"
 
 static unsigned opcode, funct, shamt, address, temp1, temp2, temp3, temp4, rs, rt, rd;
 static unsigned immediate, signRs, signRt, signRd, signIm, signPos, pos;
@@ -46,7 +47,21 @@ void run() {
         findOpcode();
         switch (opcode) {
             case HALT: return;
-            case J:
+            case J: {
+				temp1 = iDisk[PC];
+                temp2 = iDisk[PC + 1];
+                temp3 = iDisk[PC + 2];
+                temp4 = iDisk[PC + 3];
+                temp1 = temp1 << 30 >> 6;
+                temp2 = temp2 << 24 >> 8;
+                temp3 = temp3 << 24 >> 16;
+                temp4 = temp4 << 24 >> 24;
+                address = temp1 + temp2 + temp3 + temp4;
+                PC = ((PC + 4) >> 28 << 28) | (address << 2);
+                break;
+			}
+            case JAL: {
+				reg[31] = PC + 4;
                 temp1 = iDisk[PC];
                 temp2 = iDisk[PC + 1];
                 temp3 = iDisk[PC + 2];
@@ -58,26 +73,14 @@ void run() {
                 address = temp1 + temp2 + temp3 + temp4;
                 PC = ((PC + 4) >> 28 << 28) | (address << 2);
                 break;
-            case JAL:
-                reg[31] = PC + 4;
-                temp1 = iDisk[PC];
-                temp2 = iDisk[PC + 1];
-                temp3 = iDisk[PC + 2];
-                temp4 = iDisk[PC + 3];
-                temp1 = temp1 << 30 >> 6;
-                temp2 = temp2 << 24 >> 8;
-                temp3 = temp3 << 24 >> 16;
-                temp4 = temp4 << 24 >> 24;
-                address = temp1 + temp2 + temp3 + temp4;
-                PC = ((PC + 4) >> 28 << 28) | (address << 2);
-                break;
-            case R:
-                funct = iDisk[PC + 3];
+			}
+            case R: {
+				funct = iDisk[PC + 3];
                 funct = funct << 26 >> 26;
                 findRsRtRd(&rs, &rt, &rd);
                 switch (funct) {
-                    case ADD:
-                        signRs = reg[rs] >> 31, signRt = reg[rt] >> 31;
+                    case ADD: {
+						signRs = reg[rs] >> 31, signRt = reg[rt] >> 31;
                         reg[rd] = reg[rs] + reg[rt];
                         signRd = reg[rd] >> 31;
                         if (rd == 0) {
@@ -88,16 +91,18 @@ void run() {
                             numberOverflow = 1;
                         PC += 4;
                         break;
-                    case ADDU:
-                        reg[rd] = reg[rs] + reg[rt];
+					}
+                    case ADDU: {
+						reg[rd] = reg[rs] + reg[rt];
                         if (rd == 0) {
                             writeToZero = 1;
                             reg[rd] = 0;
                         }
                         PC += 4;
                         break;
-                    case SUB:
-                        signRs = reg[rs] >> 31, signRt = (-reg[rt]) >> 31;
+					}
+                    case SUB: {
+						signRs = reg[rs] >> 31, signRt = (-reg[rt]) >> 31;
                         reg[rd] = reg[rs] - reg[rt];
                         signRd = reg[rd] >> 31;
                         if (rd == 0) {
@@ -108,48 +113,54 @@ void run() {
                             numberOverflow = 1;
                         PC += 4;
                         break;
-                    case AND:
-                        reg[rd] = reg[rs] & reg[rt];
+					}
+                    case AND: {
+						reg[rd] = reg[rs] & reg[rt];
                         if (rd == 0) {
                             writeToZero = 1;
                             reg[rd] = 0;
                         }
                         PC += 4;
                         break;
-                    case OR:
-                        reg[rd] = reg[rs] | reg[rt];
+					}
+                    case OR: {
+						reg[rd] = reg[rs] | reg[rt];
                         if (rd == 0) {
                             writeToZero = 1;
                             reg[rd] = 0;
                         }
                         PC += 4;
                         break;
-                    case XOR:
-                        reg[rd] = reg[rs] ^ reg[rt];
+					}
+                    case XOR: {
+						reg[rd] = reg[rs] ^ reg[rt];
                         if (rd == 0) {
                             writeToZero = 1;
                             reg[rd] = 0;
                         }
                         PC += 4;
                         break;
-                    case NOR:
-                        reg[rd] = ~(reg[rs] | reg[rt]);
+					}
+                    case NOR: {
+						reg[rd] = ~(reg[rs] | reg[rt]);
                         if (rd == 0) {
                             writeToZero = 1;
                             reg[rd] = 0;
                         }
                         PC += 4;
                         break;
-                    case NAND:
-                        reg[rd] = ~(reg[rs] & reg[rt]);
+					}
+                    case NAND: {
+						reg[rd] = ~(reg[rs] & reg[rt]);
                         if (rd == 0) {
                             writeToZero = 1;
                             reg[rd] = 0;
                         }
                         PC += 4;
                         break;
-                    case SLT:
-                        intRs = reg[rs], intRt = reg[rt];
+					}
+                    case SLT: {
+						intRs = reg[rs], intRt = reg[rt];
                         reg[rd] = (intRs < intRt) ? 1 : 0;
                         if (rd == 0) {
                             writeToZero = 1;
@@ -157,8 +168,9 @@ void run() {
                         }
                         PC += 4;
                         break;
-                    case SLL:
-                        findShamt(&shamt);
+					}
+                    case SLL: {
+						findShamt(&shamt);
                         reg[rd] = reg[rt] << shamt;
                         if (rd == 0) {
                             if (!(rt == 0 && shamt == 0)) {
@@ -168,8 +180,9 @@ void run() {
                         }
                         PC += 4;
                         break;
-                    case SRL:
-                        findShamt(&shamt);
+					}
+                    case SRL: {
+						findShamt(&shamt);
                         reg[rd] = reg[rt] >> shamt;
                         if (rd == 0) {
                             writeToZero = 1;
@@ -177,8 +190,9 @@ void run() {
                         }
                         PC += 4;
                         break;
-                    case SRA:
-                        findShamt(&shamt);
+					}
+                    case SRA: {
+						findShamt(&shamt);
                         temp = reg[rt];
                         temp = temp >> shamt;
                         reg[rd] = temp;
@@ -188,15 +202,16 @@ void run() {
                         }
                         PC += 4;
                         break;
-                    default:
-                        PC = reg[rs];
+					}
+                    default: PC = reg[rs];
                 }
                 break;
-            default:
-                findRsRtRd(&rs, &rt, NULL);
+			}
+            default: {
+				findRsRtRd(&rs, &rt, NULL);
                 switch (opcode) {
-                    case ADDI:
-                        findSignedImmediate(&immediate);
+                    case ADDI: {
+						findSignedImmediate(&immediate);
                         signRs = reg[rs] >> 31, signIm = immediate >> 31;
                         reg[rt] = reg[rs] + immediate;
                         signRt = reg[rt] >> 31;
@@ -208,8 +223,9 @@ void run() {
                             numberOverflow = 1;
                         PC += 4;
                         break;
-                    case ADDIU:
-                        findSignedImmediate(&immediate);
+					}
+                    case ADDIU: {
+						findSignedImmediate(&immediate);
                         reg[rt] = reg[rs] + immediate;
                         if (rt == 0) {
                             writeToZero = 1;
@@ -217,8 +233,9 @@ void run() {
                         }
                         PC += 4;
                         break;
-                    case LW:
-                        if (rt == 0)
+					}
+                    case LW: {
+						if (rt == 0)
                             writeToZero = 1;
                         findSignedImmediate(&immediate);
                         if (findPosByImmediateWithErrorDetection(3)) return;
@@ -232,8 +249,9 @@ void run() {
                             reg[rt] = 0;
                         PC += 4;
                         break;
-                    case LH:
-                        if (rt == 0)
+					}
+                    case LH: {
+						if (rt == 0)
                             writeToZero = 1;
                         findSignedImmediate(&immediate);
                         if (findPosByImmediateWithErrorDetection(1)) return;
@@ -246,8 +264,9 @@ void run() {
                             reg[rt] = 0;
                         PC += 4;
                         break;
-                    case LHU:
-                        if (rt == 0)
+					}
+                    case LHU: {
+						if (rt == 0)
                             writeToZero = 1;
                         findSignedImmediate(&immediate);
                         if (findPosByImmediateWithErrorDetection(1)) return;
@@ -259,8 +278,9 @@ void run() {
                             reg[rt] = 0;
                         PC += 4;
                         break;
-                    case LB:
-                        if (rt == 0)
+					}
+                    case LB: {
+						if (rt == 0)
                             writeToZero = 1;
                         findSignedImmediate(&immediate);
                         if (findPosByImmediateWithErrorDetection(0)) return;
@@ -270,8 +290,9 @@ void run() {
                             reg[rt] = 0;
                         PC += 4;
                         break;
-                    case LBU:
-                        if (rt == 0)
+					}
+                    case LBU: {
+						if (rt == 0)
                             writeToZero = 1;
                         findSignedImmediate(&immediate);
                         if (findPosByImmediateWithErrorDetection(0)) return;
@@ -281,8 +302,9 @@ void run() {
                             reg[rt] = 0;
                         PC += 4;
                         break;
-                    case SW:
-                        findSignedImmediate(&immediate);
+					}
+                    case SW: {
+						findSignedImmediate(&immediate);
                         if (findPosByImmediateWithErrorDetection(3)) return;
                         // Misalignment detection is embedded in the findPos function.
                         dDisk[pos] = reg[rt] >> 24;
@@ -291,23 +313,26 @@ void run() {
                         dDisk[pos + 3] = reg[rt] << 24 >> 24;
                         PC += 4;
                         break;
-                    case SH:
-                        findSignedImmediate(&immediate);
+					}
+                    case SH: {
+						findSignedImmediate(&immediate);
                         if (findPosByImmediateWithErrorDetection(1)) return;
                         // Misalignment detection is embedded in the findPos function.
                         dDisk[pos] = reg[rt] << 16 >> 24;
                         dDisk[pos + 1] = reg[rt] << 24 >> 24;
                         PC += 4;
                         break;
-                    case SB:
-                        findSignedImmediate(&immediate);
+					}
+                    case SB: {
+						findSignedImmediate(&immediate);
                         if (findPosByImmediateWithErrorDetection(0)) return;
                         // No need to detect misalignment.
                         dDisk[pos] = reg[rt] << 24 >> 24;
                         PC += 4;
                         break;
-                    case LUI:
-                        findUnsignedImmediate(&immediate);
+					}
+                    case LUI: {
+						findUnsignedImmediate(&immediate);
                         reg[rt] = immediate << 16;
                         if (rt == 0) {
                             writeToZero = 1;
@@ -315,8 +340,9 @@ void run() {
                         }
                         PC += 4;
                         break;
-                    case ANDI:
-                        findUnsignedImmediate(&immediate);
+					}
+                    case ANDI: {
+						findUnsignedImmediate(&immediate);
                         reg[rt] = reg[rs] & immediate;
                         if (rt == 0) {
                             writeToZero = 1;
@@ -324,8 +350,9 @@ void run() {
                         }
                         PC += 4;
                         break;
-                    case ORI:
-                        findUnsignedImmediate(&immediate);
+					}
+                    case ORI: {
+						findUnsignedImmediate(&immediate);
                         reg[rt] = reg[rs] | immediate;
                         if (rt == 0) {
                             writeToZero = 1;
@@ -333,8 +360,9 @@ void run() {
                         }
                         PC += 4;
                         break;
-                    case NORI:
-                        findUnsignedImmediate(&immediate);
+					}
+                    case NORI: {
+						findUnsignedImmediate(&immediate);
                         reg[rt] = ~(reg[rs] | immediate);
                         if (rt == 0) {
                             writeToZero = 1;
@@ -342,8 +370,9 @@ void run() {
                         }
                         PC += 4;
                         break;
-                    case SLTI:
-                        findSignedImmediate(&immediate);
+					}
+                    case SLTI: {
+						findSignedImmediate(&immediate);
                         intIm = immediate, intRs = reg[rs];
                         reg[rt] = (intRs < intIm) ? 1 : 0;
                         if (rt == 0) {
@@ -352,34 +381,40 @@ void run() {
                         }
                         PC += 4;
                         break;
-                    case BEQ:
-                        findSignedImmediate(&immediate);
+					}
+                    case BEQ: {
+						findSignedImmediate(&immediate);
                         if (reg[rs] == reg[rt]) {
                             immediate = immediate << 2;
                             PC = PC + 4 + immediate;
                         } else PC += 4;
                         break;
-                    case BNE:
-                        findSignedImmediate(&immediate);
+					}
+                    case BNE: {
+						findSignedImmediate(&immediate);
                         if (reg[rs] != reg[rt]) {
                             immediate = immediate << 2;
                             PC = PC + 4 + immediate;
                         } else PC += 4;
                         break;
-                    default:
-                        findSignedImmediate(&immediate);
+					}
+                    default: {
+						findSignedImmediate(&immediate);
                         int temp = reg[rs];
                         if (temp > 0) {
                             immediate = immediate << 2;
                             PC = PC + 4 + immediate;
                         } else PC += 4;
+					}
                 }
+			}
         }
         errorDump();
     }
 }
 
-int main() {
+int main(int argc, char **argv) {
+	
     openNLoadFiles();
     dealWithDImg();
     dealWithIImg();
