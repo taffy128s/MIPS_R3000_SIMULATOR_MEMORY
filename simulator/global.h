@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+extern unsigned iCacheLength;
+extern unsigned dCacheLength;
+extern unsigned iPageTableEntries;
+extern unsigned dPageTableEntries;
+
 extern unsigned iTLBValidSet, iPTEValidPPN, iCacheContent;
 extern unsigned iCacheHit, iCacheMiss;
 extern unsigned dCacheHit, dCacheMiss;

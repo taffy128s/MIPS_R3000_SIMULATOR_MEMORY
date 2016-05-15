@@ -34,12 +34,8 @@ struct cacheBlock {
 	}
 };
 
-static unsigned iPageTableEntries = 1024 / iMemoryPageSize;
-static unsigned dPageTableEntries = 1024 / dMemoryPageSize;
 static unsigned iTLBEntries = iPageTableEntries / 4;
 static unsigned dTLBEntries = dPageTableEntries / 4;
-static unsigned iCacheLength = totalSizeOfICache / blockSizeOfICache / setAssOfICache;
-static unsigned dCacheLength = totalSizeOfDCache / blockSizeOfDCache / setAssOfDCache;
 
 vector<tlb> iTLB;
 vector<tlb> dTLB;

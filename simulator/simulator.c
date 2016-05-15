@@ -419,7 +419,7 @@ void run() {
 }
 
 int main(int argc, char **argv) {
-    /*if (argc == 1) {
+    if (argc == 1) {
         iMemorySize = 64;
         dMemorySize = 32;
         iMemoryPageSize = 8;
@@ -444,12 +444,17 @@ int main(int argc, char **argv) {
     } else {
         printf("Wrong input format.\n");
         exit(0);
-    }*/
-    //openNLoadFiles();
-    //dealWithDImg();
-    //dealWithIImg();
-    //run();
+    }
+	iCacheLength = totalSizeOfICache / blockSizeOfICache / setAssOfICache;
+	dCacheLength = totalSizeOfDCache / blockSizeOfDCache / setAssOfDCache;
+	iPageTableEntries = 1024 / iMemoryPageSize;
+	dPageTableEntries = 1024 / dMemoryPageSize;
+	
+    openNLoadFiles();
+    dealWithDImg();
+    dealWithIImg();
+    run();
     // Last return may be an error, so it's necessary to run errorDump() again.
-    //errorDump();
+    errorDump();
     return 0;
 }

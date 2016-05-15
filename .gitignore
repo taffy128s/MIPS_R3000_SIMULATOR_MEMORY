@@ -1,2 +1,6 @@
 *.o
+CMP
+snapshot.rpt
+error_dump.rpt
+report.rpt
 
