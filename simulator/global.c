@@ -14,5 +14,6 @@ unsigned totalSizeOfDCache, blockSizeOfDCache, setAssOfDCache;
 unsigned writeToZero, numberOverflow, memoryOverflow, memoryMisalignment;
 unsigned iImgLen, dImgLen, iImgLenResult, dImgLenResult, reg[32], PC, cycle;
 char *iImgBuffer, *dImgBuffer;
+char dRun[1024], iRun[1024];
 char dDisk[1024], iDisk[1024];
 FILE *err, *snap, *iImg, *dImg;

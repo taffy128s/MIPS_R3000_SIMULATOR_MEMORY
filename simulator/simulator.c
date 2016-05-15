@@ -18,7 +18,7 @@ static unsigned immediate, signRs, signRt, signRd, signIm, signPos, pos;
 static int intRs, intRt, intIm, temp;
 
 void findOpcode() {
-    opcode = iDisk[PC];
+    opcode = iRun[PC];
     opcode = opcode >> 2 << 26 >> 26;
 }
 
@@ -48,10 +48,10 @@ void run() {
         switch (opcode) {
             case HALT: return;
             case J: {
-                temp1 = iDisk[PC];
-                temp2 = iDisk[PC + 1];
-                temp3 = iDisk[PC + 2];
-                temp4 = iDisk[PC + 3];
+                temp1 = iRun[PC];
+                temp2 = iRun[PC + 1];
+                temp3 = iRun[PC + 2];
+                temp4 = iRun[PC + 3];
                 temp1 = temp1 << 30 >> 6;
                 temp2 = temp2 << 24 >> 8;
                 temp3 = temp3 << 24 >> 16;
@@ -62,10 +62,10 @@ void run() {
             }
             case JAL: {
                 reg[31] = PC + 4;
-                temp1 = iDisk[PC];
-                temp2 = iDisk[PC + 1];
-                temp3 = iDisk[PC + 2];
-                temp4 = iDisk[PC + 3];
+                temp1 = iRun[PC];
+                temp2 = iRun[PC + 1];
+                temp3 = iRun[PC + 2];
+                temp4 = iRun[PC + 3];
                 temp1 = temp1 << 30 >> 6;
                 temp2 = temp2 << 24 >> 8;
                 temp3 = temp3 << 24 >> 16;
@@ -75,7 +75,7 @@ void run() {
                 break;
             }
             case R: {
-                funct = iDisk[PC + 3];
+                funct = iRun[PC + 3];
                 funct = funct << 26 >> 26;
                 findRsRtRd(&rs, &rt, &rd);
                 switch (funct) {
@@ -240,10 +240,10 @@ void run() {
                         findSignedImmediate(&immediate);
                         if (findPosByImmediateWithErrorDetection(3)) return;
                         // Misalignment detection is embedded in the findPos function.
-                        temp1 = dDisk[pos], temp1 = temp1 << 24;
-                        temp2 = dDisk[pos + 1], temp2 = temp2 << 24 >> 8;
-                        temp3 = dDisk[pos + 2], temp3 = temp3 << 24 >> 16;
-                        temp4 = dDisk[pos + 3], temp4 = temp4 << 24 >> 24;
+                        temp1 = dRun[pos], temp1 = temp1 << 24;
+                        temp2 = dRun[pos + 1], temp2 = temp2 << 24 >> 8;
+                        temp3 = dRun[pos + 2], temp3 = temp3 << 24 >> 16;
+                        temp4 = dRun[pos + 3], temp4 = temp4 << 24 >> 24;
                         reg[rt] = temp1 + temp2 + temp3 + temp4;
                         if (rt == 0)
                             reg[rt] = 0;
@@ -256,8 +256,8 @@ void run() {
                         findSignedImmediate(&immediate);
                         if (findPosByImmediateWithErrorDetection(1)) return;
                         // Misalignment detection is embedded in the findPos function.
-                        temp1 = dDisk[pos], temp1 = temp1 << 24 >> 16;
-                        temp2 = dDisk[pos + 1], temp2 = temp2 << 24 >> 24;
+                        temp1 = dRun[pos], temp1 = temp1 << 24 >> 16;
+                        temp2 = dRun[pos + 1], temp2 = temp2 << 24 >> 24;
                         short shortTemp = temp1 + temp2;
                         reg[rt] = shortTemp;
                         if (rt == 0)
@@ -271,8 +271,8 @@ void run() {
                         findSignedImmediate(&immediate);
                         if (findPosByImmediateWithErrorDetection(1)) return;
                         // Misalignment detection is embedded in the findPos function.
-                        temp1 = dDisk[pos], temp1 = temp1 << 24 >> 16;
-                        temp2 = dDisk[pos + 1], temp2 = temp2 << 24 >> 24;
+                        temp1 = dRun[pos], temp1 = temp1 << 24 >> 16;
+                        temp2 = dRun[pos + 1], temp2 = temp2 << 24 >> 24;
                         reg[rt] = temp1 + temp2;
                         if (rt == 0)
                             reg[rt] = 0;
@@ -285,7 +285,7 @@ void run() {
                         findSignedImmediate(&immediate);
                         if (findPosByImmediateWithErrorDetection(0)) return;
                         // No need to detect misalignment.
-                        reg[rt] = dDisk[pos];
+                        reg[rt] = dRun[pos];
                         if (rt == 0)
                             reg[rt] = 0;
                         PC += 4;
@@ -297,7 +297,7 @@ void run() {
                         findSignedImmediate(&immediate);
                         if (findPosByImmediateWithErrorDetection(0)) return;
                         // No need to detect misalignment.
-                        reg[rt] = dDisk[pos], reg[rt] = reg[rt] << 24 >> 24;
+                        reg[rt] = dRun[pos], reg[rt] = reg[rt] << 24 >> 24;
                         if (rt == 0)
                             reg[rt] = 0;
                         PC += 4;
@@ -307,10 +307,10 @@ void run() {
                         findSignedImmediate(&immediate);
                         if (findPosByImmediateWithErrorDetection(3)) return;
                         // Misalignment detection is embedded in the findPos function.
-                        dDisk[pos] = reg[rt] >> 24;
-                        dDisk[pos + 1] = reg[rt] << 8 >> 24;
-                        dDisk[pos + 2] = reg[rt] << 16 >> 24;
-                        dDisk[pos + 3] = reg[rt] << 24 >> 24;
+                        dRun[pos] = reg[rt] >> 24;
+                        dRun[pos + 1] = reg[rt] << 8 >> 24;
+                        dRun[pos + 2] = reg[rt] << 16 >> 24;
+                        dRun[pos + 3] = reg[rt] << 24 >> 24;
                         PC += 4;
                         break;
                     }
@@ -318,8 +318,8 @@ void run() {
                         findSignedImmediate(&immediate);
                         if (findPosByImmediateWithErrorDetection(1)) return;
                         // Misalignment detection is embedded in the findPos function.
-                        dDisk[pos] = reg[rt] << 16 >> 24;
-                        dDisk[pos + 1] = reg[rt] << 24 >> 24;
+                        dRun[pos] = reg[rt] << 16 >> 24;
+                        dRun[pos + 1] = reg[rt] << 24 >> 24;
                         PC += 4;
                         break;
                     }
@@ -327,7 +327,7 @@ void run() {
                         findSignedImmediate(&immediate);
                         if (findPosByImmediateWithErrorDetection(0)) return;
                         // No need to detect misalignment.
-                        dDisk[pos] = reg[rt] << 24 >> 24;
+                        dRun[pos] = reg[rt] << 24 >> 24;
                         PC += 4;
                         break;
                     }

@@ -15,5 +15,6 @@ extern unsigned iMemorySize, dMemorySize;
 extern unsigned writeToZero, numberOverflow, memoryOverflow, memoryMisalignment;
 extern unsigned iImgLen, dImgLen, iImgLenResult, dImgLenResult, reg[32], PC, cycle;
 extern char *iImgBuffer, *dImgBuffer;
+extern char dRun[1024], iRun[1024];
 extern char dDisk[1024], iDisk[1024];
 extern FILE *err, *snap, *iImg, *dImg;
