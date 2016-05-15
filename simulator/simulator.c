@@ -62,7 +62,7 @@ void run() {
 			}
             case JAL: {
 				reg[31] = PC + 4;
-                temp1 = iDisk[PC];
+				temp1 = iDisk[PC];
                 temp2 = iDisk[PC + 1];
                 temp3 = iDisk[PC + 2];
                 temp4 = iDisk[PC + 3];
