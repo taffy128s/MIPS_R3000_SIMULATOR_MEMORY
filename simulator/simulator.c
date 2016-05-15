@@ -49,7 +49,7 @@ void run() {
             case HALT: return;
             case J: {
 				temp1 = iDisk[PC];
-                temp2 = iDisk[PC + 1];
+				temp2 = iDisk[PC + 1];
                 temp3 = iDisk[PC + 2];
                 temp4 = iDisk[PC + 3];
                 temp1 = temp1 << 30 >> 6;
