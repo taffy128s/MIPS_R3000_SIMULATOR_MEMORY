@@ -414,7 +414,32 @@ void run() {
 }
 
 int main(int argc, char **argv) {
-	
+	if (argc == 1) {
+		iMemorySize = 64;
+		dMemorySize = 32;
+		iMemoryPageSize = 8;
+		dMemoryPageSize = 16;
+		totalSizeOfICache = 16;
+		blockSizeOfICache = 4;
+		setAssOfICache = 4;
+		totalSizeOfDCache = 16;
+		blockSizeOfDCache = 4;
+		setAssOfDCache = 1;
+	} else if (argc == 11) {
+		iMemorySize = atoi(argv[1]);
+		dMemorySize = atoi(argv[2]);
+		iMemoryPageSize = atoi(argv[3]);
+		dMemoryPageSize = atoi(argv[4]);
+		totalSizeOfICache = atoi(argv[5]);
+		blockSizeOfICache = atoi(argv[6]);
+		setAssOfICache = atoi(argv[7]);
+		totalSizeOfDCache = atoi(argv[8]);
+		blockSizeOfDCache = atoi(argv[9]);
+		setAssOfDCache = atoi(argv[10]);
+	} else {
+		printf("Wrong input format.\n");
+		exit(0);
+	}
     openNLoadFiles();
     dealWithDImg();
     dealWithIImg();
