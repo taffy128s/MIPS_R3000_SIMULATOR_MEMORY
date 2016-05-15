@@ -440,11 +440,11 @@ int main(int argc, char **argv) {
 		printf("Wrong input format.\n");
 		exit(0);
 	}
-    openNLoadFiles();
-    dealWithDImg();
-    dealWithIImg();
-    run();
-    // Last return may be an error, so it's necessary to run errorDump() again.
-    errorDump();
+	openNLoadFiles();
+	dealWithDImg();
+	dealWithIImg();
+	run();
+	// Last return may be an error, so it's necessary to run errorDump() again.
+	errorDump();
     return 0;
 }

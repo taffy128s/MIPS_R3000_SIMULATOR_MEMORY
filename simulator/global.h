@@ -1,6 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+extern unsigned iCacheHit, iCacheMiss;
+extern unsigned dCacheHit, dCacheMiss;
+extern unsigned iTLBHit, iTLBMiss;
+extern unsigned dTLBHit, dTLBMiss;
+extern unsigned iPageTableHit, iPageTableMiss;
+extern unsigned dPageTableHit, dPageTableMiss;
 extern unsigned iMemorySize, dMemorySize;
 extern unsigned iMemoryPageSize, dMemoryPageSize;
 extern unsigned totalSizeOfICache, blockSizeOfICache, setAssOfICache;
