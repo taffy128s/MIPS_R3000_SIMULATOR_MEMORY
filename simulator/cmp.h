@@ -6,4 +6,8 @@ void initCache();
 
 void initMemory();
 
-bool checkITLBHit();
+int checkITLBHit(unsigned vm);
+
+int checkIPTEHit(unsigned vm);
+
+int checkICacheHit(unsigned pMemoryAddr);

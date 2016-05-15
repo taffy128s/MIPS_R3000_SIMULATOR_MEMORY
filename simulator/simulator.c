@@ -18,6 +18,11 @@ static unsigned immediate, signRs, signRt, signRd, signIm, signPos, pos;
 static int intRs, intRt, intIm, temp;
 
 void findOpcode() {
+	int chkITLBHit = checkITLBHit(PC);
+	int chkIPTEHit = checkIPTEHit(PC);
+	if (chkITLBHit == 0 && chkIPTEHit == 0 && cycle == 1) {
+		printf("OK\n");
+	}
     opcode = iRun[PC];
     opcode = opcode >> 2 << 26 >> 26;
 }
@@ -414,7 +419,7 @@ void run() {
 }
 
 int main(int argc, char **argv) {
-    if (argc == 1) {
+    /*if (argc == 1) {
         iMemorySize = 64;
         dMemorySize = 32;
         iMemoryPageSize = 8;
@@ -439,12 +444,12 @@ int main(int argc, char **argv) {
     } else {
         printf("Wrong input format.\n");
         exit(0);
-    }
-    openNLoadFiles();
-    dealWithDImg();
-    dealWithIImg();
-    run();
+    }*/
+    //openNLoadFiles();
+    //dealWithDImg();
+    //dealWithIImg();
+    //run();
     // Last return may be an error, so it's necessary to run errorDump() again.
-    errorDump();
+    //errorDump();
     return 0;
 }

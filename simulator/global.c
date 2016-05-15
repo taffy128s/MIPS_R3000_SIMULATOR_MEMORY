@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+unsigned iTLBValidSet, iPTEValidPPN, iCacheContent;
 unsigned iCacheHit, iCacheMiss;
 unsigned dCacheHit, dCacheMiss;
 unsigned iTLBHit, iTLBMiss;

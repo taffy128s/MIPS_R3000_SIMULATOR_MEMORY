@@ -90,6 +90,40 @@ void initMemory() {
 		dMemory[i] = 0;
 }
 
-bool checkITLBHit() {
-	
+int checkITLBHit(unsigned vm) {
+	unsigned tempPageNum = vm / iMemoryPageSize;
+	for (unsigned i = 0; i < iTLB.size(); i++) {
+		if (iTLB[i].valid == 1 && iTLB[i].tag == tempPageNum) {
+			iTLBValidSet = iTLB[i].set;
+			iTLBHit++;
+			return 1;
+		}
+	}
+	iTLBMiss++;
+	return 0;
+}
+
+int checkIPTEHit(unsigned vm) {
+	unsigned tempPageNum = vm / iMemoryPageSize;
+	if (iPTE[tempPageNum].valid == 1) {
+		iPTEValidPPN = iPTE[tempPageNum].pPageNumber;
+		iPageTableHit++;
+		return 1;
+	}
+	iPageTableMiss++;
+	return 0;
+}
+
+int checkICacheHit(unsigned pMemoryAddr) {
+	unsigned cacheIdx = pMemoryAddr % iCacheLength;
+	for (unsigned i = 0; i < setAssOfICache; i++) {
+		unsigned tempTag = pMemoryAddr / iCacheLength;
+		if (iCache[cacheIdx][i].valid == 1 && iCache[cacheIdx][i].tag == tempTag) {
+			iCacheContent = iCache[cacheIdx][i].content;
+			iCacheHit++;
+			return 1;
+		}
+	}
+	iCacheMiss++;
+	return 0;
 }
