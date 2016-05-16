@@ -21,7 +21,8 @@ void findOpcode() {
 	int chkITLBHit = checkITLBHit(PC);
 	int chkIPTEHit = checkIPTEHit(PC);
 	if (chkITLBHit == 0 && chkIPTEHit == 0) {
-		printf("OK\n");
+		// TODO: swap
+		
 	}
     opcode = iRun[PC];
     opcode = opcode >> 2 << 26 >> 26;
@@ -445,17 +446,17 @@ int main(int argc, char **argv) {
         printf("Wrong input format.\n");
         exit(0);
     }
-	
+
 	iCacheLength = totalSizeOfICache / blockSizeOfICache / setAssOfICache;
 	dCacheLength = totalSizeOfDCache / blockSizeOfDCache / setAssOfDCache;
 	iPageTableEntries = 1024 / iMemoryPageSize;
 	dPageTableEntries = 1024 / dMemoryPageSize;
-	
+
 	initTLB();
 	initPTE();
 	initCache();
 	initMemory();
-	
+
     openNLoadFiles();
     dealWithDImg();
     dealWithIImg();

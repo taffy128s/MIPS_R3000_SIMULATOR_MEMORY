@@ -34,6 +34,11 @@ struct cacheBlock {
 	}
 };
 
+struct memoryBlock {
+	char content;
+	int lastused;
+};
+
 static unsigned iTLBEntries = iPageTableEntries / 4;
 static unsigned dTLBEntries = dPageTableEntries / 4;
 
@@ -43,8 +48,8 @@ pte *iPTE;
 pte *dPTE;
 vector<cacheBlock> *iCache;
 vector<cacheBlock> *dCache;
-char *iMemory;
-char *dMemory;
+memoryBlock *iMemory;
+memoryBlock *dMemory;
 
 void initTLB() {
 	for (unsigned i = 0; i < iTLBEntries; i++)
@@ -78,12 +83,16 @@ void initCache() {
 }
 
 void initMemory() {
-	iMemory = new char[iMemorySize];
-	for (unsigned i = 0; i < iMemorySize; i++)
-		iMemory[i] = 0;
-	dMemory = new char[dMemorySize];
-	for (unsigned i = 0; i < dMemorySize; i++)
-		dMemory[i] = 0;
+	iMemory = new memoryBlock[iMemorySize];
+	for (unsigned i = 0; i < iMemorySize; i++) {
+		iMemory[i].content = 0;
+		iMemory[i].lastused = 0;
+	}
+	dMemory = new memoryBlock[dMemorySize];
+	for (unsigned i = 0; i < dMemorySize; i++) {
+		dMemory[i].content = 0;
+		dMemory[i].lastused = 0;
+	}
 }
 
 int checkITLBHit(unsigned vm) {
@@ -122,4 +131,8 @@ int checkICacheHit(unsigned pMemoryAddr) {
 	}
 	iCacheMiss++;
 	return 0;
+}
+
+int findIMemoryLRUIdx() {
+	
 }
