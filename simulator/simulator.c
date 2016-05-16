@@ -20,7 +20,7 @@ static int intRs, intRt, intIm, temp;
 void findOpcode() {
 	int chkITLBHit = checkITLBHit(PC);
 	int chkIPTEHit = checkIPTEHit(PC);
-	if (chkITLBHit == 0 && chkIPTEHit == 0 && cycle == 1) {
+	if (chkITLBHit == 0 && chkIPTEHit == 0) {
 		printf("OK\n");
 	}
     opcode = iRun[PC];
