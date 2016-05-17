@@ -23,6 +23,7 @@ void findOpcode() {
 	if (chkITLBHit == 0 && chkIPTEHit == 0) {
 		// TODO: swap
 		unsigned iMemoryReplaceIdx = findIMemoryReplaceIdx();
+		swapIMemory(PC, iMemoryReplaceIdx);
         printf("%u\n", iMemoryReplaceIdx);
 	}
     opcode = iRun[PC];
