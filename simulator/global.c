@@ -5,6 +5,8 @@ unsigned iCacheLength;
 unsigned dCacheLength;
 unsigned iPageTableEntries;
 unsigned dPageTableEntries;
+unsigned iTLBEntries;
+unsigned dTLBEntries;
 
 unsigned iTLBValidSet, iPTEValidPPN, iCacheContent;
 unsigned iCacheHit, iCacheMiss;

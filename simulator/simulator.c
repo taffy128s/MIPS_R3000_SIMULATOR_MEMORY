@@ -19,14 +19,21 @@ static int intRs, intRt, intIm, temp;
 
 void findOpcode() {
 	int chkITLBHit = checkITLBHit(PC);
-	int chkIPTEHit = checkIPTEHit(PC);
-	if (chkITLBHit == 0 && chkIPTEHit == 0) {
-		unsigned iMemoryReplaceIdx = findIMemoryReplaceIdx();
-		swapIMemory(PC, iMemoryReplaceIdx);
-		updateIPTE(PC, iMemoryReplaceIdx);
-		
-		//printf("%u\n", iMemoryReplaceIdx);
-	}
+    if (chkITLBHit == 0) { // iTLB misses.
+        int chkIPTEHit = checkIPTEHit(PC);
+        if (chkIPTEHit == 0) { // iPTE misses.
+            unsigned iMemoryReplaceIdx = findIMemoryReplaceIdx();
+            swapIMemory(PC, iMemoryReplaceIdx);
+            updateIPTE(PC, iMemoryReplaceIdx);
+            updateITLBWhenPageTableMiss(PC, iMemoryReplaceIdx);
+            // TODO: search cache (in fact, cache must miss)
+        } else {
+            updateITLBWhenPageTableHit(PC);
+            // TODO: search cache
+        }
+    } else {
+        // TODO: search cache
+    }
     opcode = iRun[PC];
     opcode = opcode >> 2 << 26 >> 26;
 }
@@ -454,6 +461,8 @@ int main(int argc, char **argv) {
 	dCacheLength = totalSizeOfDCache / blockSizeOfDCache / setAssOfDCache;
 	iPageTableEntries = 1024 / iMemoryPageSize;
 	dPageTableEntries = 1024 / dMemoryPageSize;
+    iTLBEntries = iPageTableEntries / 4;
+    dTLBEntries = dPageTableEntries / 4;
 
 	initTLB();
 	initPTE();
@@ -466,5 +475,7 @@ int main(int argc, char **argv) {
     run();
     // Last return may be an error, so it's necessary to run errorDump() again.
     errorDump();
+    printf("iTLBHit: %u, iPageTableHit: %u\n", iTLBHit, iPageTableHit);
+    printf("iTLBMiss: %u, iPageTableMiss: %u\n", iTLBMiss, iPageTableMiss);
     return 0;
 }
