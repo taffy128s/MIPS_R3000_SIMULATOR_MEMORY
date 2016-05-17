@@ -22,7 +22,8 @@ void findOpcode() {
 	int chkIPTEHit = checkIPTEHit(PC);
 	if (chkITLBHit == 0 && chkIPTEHit == 0) {
 		// TODO: swap
-		
+		unsigned iMemoryReplaceIdx = findIMemoryReplaceIdx();
+        printf("%u\n", iMemoryReplaceIdx);
 	}
     opcode = iRun[PC];
     opcode = opcode >> 2 << 26 >> 26;

@@ -1,6 +1,7 @@
 #include "global.h"
 #include "cmp.h"
 #include <vector>
+#include <limits.h>
 
 using namespace std;
 
@@ -36,7 +37,8 @@ struct cacheBlock {
 
 struct memoryBlock {
 	char content;
-	int lastused;
+	unsigned lastused;
+    unsigned diskAddr;
 };
 
 static unsigned iTLBEntries = iPageTableEntries / 4;
@@ -65,7 +67,7 @@ void initPTE() {
 		iPTE[i].pPageNumber = 0;
 	}
 	dPTE = new pte[dPageTableEntries];
-	for (unsigned i = 0; i < iPageTableEntries; i++) {
+	for (unsigned i = 0; i < dPageTableEntries; i++) {
 		dPTE[i].valid = 0;
 		dPTE[i].pPageNumber = 0;
 	}
@@ -87,11 +89,13 @@ void initMemory() {
 	for (unsigned i = 0; i < iMemorySize; i++) {
 		iMemory[i].content = 0;
 		iMemory[i].lastused = 0;
+        iMemory[i].diskAddr = 0;
 	}
 	dMemory = new memoryBlock[dMemorySize];
 	for (unsigned i = 0; i < dMemorySize; i++) {
 		dMemory[i].content = 0;
 		dMemory[i].lastused = 0;
+        dMemory[i].diskAddr = 0;
 	}
 }
 
@@ -133,6 +137,34 @@ int checkICacheHit(unsigned pMemoryAddr) {
 	return 0;
 }
 
-int findIMemoryLRUIdx() {
-	
+unsigned findIMemoryReplaceIdx() {
+    unsigned smallestN = INT_MAX;
+    unsigned smallestIdx;
+	for (unsigned i = 0; i < iMemorySize; i++) {
+        if (iMemory[i].lastused < smallestN) {
+            smallestN = iMemory[i].lastused;
+            smallestIdx = i;
+        }
+        if (iMemory[i].lastused == 0) {
+            return i;
+        }
+    }
+    return smallestIdx;
+}
+
+void swapIMemory(unsigned diskAddr, unsigned idx) {
+    if (iMemory[idx].lastused > 0) {
+        for (unsigned i = idx; i < idx + iMemoryPageSize; i++) {
+            iDisk[iMemory[i].diskAddr] = iMemory[i].content;
+            iMemory[i].diskAddr = diskAddr;
+            iMemory[i].content = iDisk[diskAddr++];
+            iMemory[i].lastused = cycle;
+        }
+    } else {
+        for (unsigned i = idx; i < idx + iMemoryPageSize; i++) {
+            iMemory[i].diskAddr = diskAddr;
+            iMemory[i].content = iDisk[diskAddr++];
+            iMemory[i].lastused = cycle;
+        }
+    }
 }

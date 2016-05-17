@@ -11,3 +11,7 @@ int checkITLBHit(unsigned vm);
 int checkIPTEHit(unsigned vm);
 
 int checkICacheHit(unsigned pMemoryAddr);
+
+unsigned findIMemoryReplaceIdx();
+
+void swapIMemory(unsigned diskAddr, unsigned idx);
