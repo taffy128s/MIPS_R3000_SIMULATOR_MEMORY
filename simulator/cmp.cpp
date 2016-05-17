@@ -44,14 +44,14 @@ struct memoryBlock {
 static unsigned iTLBEntries = iPageTableEntries / 4;
 static unsigned dTLBEntries = dPageTableEntries / 4;
 
-vector<tlb> iTLB;
-vector<tlb> dTLB;
-pte *iPTE;
-pte *dPTE;
-vector<cacheBlock> *iCache;
-vector<cacheBlock> *dCache;
-memoryBlock *iMemory;
-memoryBlock *dMemory;
+static vector<tlb> iTLB;
+static vector<tlb> dTLB;
+static pte *iPTE;
+static pte *dPTE;
+static vector<cacheBlock> *iCache;
+static vector<cacheBlock> *dCache;
+static memoryBlock *iMemory;
+static memoryBlock *dMemory;
 
 void initTLB() {
 	for (unsigned i = 0; i < iTLBEntries; i++)
@@ -154,6 +154,7 @@ unsigned findIMemoryReplaceIdx() {
 
 void swapIMemory(unsigned diskAddr, unsigned idx) {
     if (iMemory[idx].lastused > 0) {
+		deactivateIPTE(idx);
         for (unsigned i = idx; i < idx + iMemoryPageSize; i++) {
             iDisk[iMemory[i].diskAddr] = iMemory[i].content;
             iMemory[i].diskAddr = diskAddr;
@@ -167,4 +168,24 @@ void swapIMemory(unsigned diskAddr, unsigned idx) {
             iMemory[i].lastused = cycle;
         }
     }
+}
+
+void deactivateIPTE(unsigned idx) {
+	unsigned virtualPageNum = iMemory[idx].diskAddr / iMemoryPageSize;
+	iPTE[virtualPageNum].valid = 0;
+}
+
+void updateIPTE(unsigned vm, unsigned idx) {
+	unsigned PPN = idx / iMemoryPageSize;
+	unsigned virtualPageNum = vm / iMemoryPageSize;
+	iPTE[virtualPageNum].pPageNumber = PPN;
+	iPTE[virtualPageNum].valid = 1;
+}
+
+unsigned findITLBReplaceIdx() {
+	
+}
+
+void updateITLB(unsigned vm, unsigned idx) {
+
 }

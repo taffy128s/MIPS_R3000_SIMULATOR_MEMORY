@@ -15,3 +15,7 @@ int checkICacheHit(unsigned pMemoryAddr);
 unsigned findIMemoryReplaceIdx();
 
 void swapIMemory(unsigned diskAddr, unsigned idx);
+
+void deactivateIPTE(unsigned idx);
+
+void updateIPTE(unsigned vm, unsigned idx);

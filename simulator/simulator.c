@@ -21,10 +21,11 @@ void findOpcode() {
 	int chkITLBHit = checkITLBHit(PC);
 	int chkIPTEHit = checkIPTEHit(PC);
 	if (chkITLBHit == 0 && chkIPTEHit == 0) {
-		// TODO: swap
 		unsigned iMemoryReplaceIdx = findIMemoryReplaceIdx();
 		swapIMemory(PC, iMemoryReplaceIdx);
-        printf("%u\n", iMemoryReplaceIdx);
+		updateIPTE(PC, iMemoryReplaceIdx);
+		
+		//printf("%u\n", iMemoryReplaceIdx);
 	}
     opcode = iRun[PC];
     opcode = opcode >> 2 << 26 >> 26;
