@@ -55,7 +55,7 @@ static vector<cacheBlock> *iCache;
 static vector<cacheBlock> *dCache;
 static memoryBlock *iMemory;
 static memoryBlock *dMemory;
-static char *iCacheTemp;
+static char *iCacheTemp, *dCacheTemp;
 
 // Initialize the TLBs.
 void initTLB() {
@@ -122,6 +122,30 @@ int checkITLBHit(unsigned vm) {
 	return 0;
 }
 
+int checkDTLBHit(unsigned vm) {
+    unsigned tempPageNum = vm / dMemoryPageSize;
+    /*puts("---------------");
+    for (unsigned i = 0; i < dTLB.size(); i++)
+        printf("%4u ", dTLB[i].tag);
+    puts("");
+    for (unsigned i = 0; i < dTLB.size(); i++)
+        printf("%4u ", dTLB[i].lastcycle);
+    puts("");
+    printf("Target tag: %u\n", tempPageNum);
+    puts("-----------------");*/
+	for (unsigned i = 0; i < dTLB.size(); i++) {
+		if (dTLB[i].lastcycle > 0 && dTLB[i].tag == tempPageNum) {
+            dTLB[i].lastcycle = cycle;
+			dTLBValidSet = dTLB[i].set;
+			dTLBHit++;
+            //puts("DTLB hit!");
+			return 1;
+		}
+	}
+	dTLBMiss++;
+	return 0;
+}
+
 // Check iPTE hits or not. If yes, update the value of iPTEValidPPN.
 int checkIPTEHit(unsigned vm) {
 	unsigned tempPageNum = vm / iMemoryPageSize;
@@ -131,6 +155,17 @@ int checkIPTEHit(unsigned vm) {
 		return 1;
 	}
 	iPageTableMiss++;
+	return 0;
+}
+
+int checkDPTEHit(unsigned vm) {
+	unsigned tempPageNum = vm / dMemoryPageSize;
+	if (dPTE[tempPageNum].valid == 1) {
+		dPTEValidPPN = dPTE[tempPageNum].pPageNumber;
+		dPageTableHit++;
+		return 1;
+	}
+	dPageTableMiss++;
 	return 0;
 }
 
@@ -153,6 +188,24 @@ int checkICacheHit(unsigned pMemoryAddr) {
 	return 0;
 }
 
+int checkDCacheHit(unsigned pMemoryAddr) {
+	unsigned cacheIdx = pMemoryAddr / blockSizeOfDCache % dCacheLength;
+    unsigned tempTag = pMemoryAddr / blockSizeOfDCache / dCacheLength;
+	for (unsigned i = 0; i < setAssOfDCache; i++) {
+		if (dCache[cacheIdx][i].valid == 1 && dCache[cacheIdx][i].tag == tempTag) {
+            // important!!
+            dCache[cacheIdx][i].MRU = 1;
+            if (chkDCacheMRUAllOne(cacheIdx) == 1)
+                clearDCacheMRU(cacheIdx, i);
+			dCachePointer = dCache[cacheIdx][i].content + pMemoryAddr % blockSizeOfDCache;
+			dCacheHit++;
+			return 1;
+		}
+	}
+	dCacheMiss++;
+	return 0;
+}
+
 // Check iCache and turn it to not valid when need to swap.
 int checkICache(unsigned pMemoryAddr) {
 	unsigned cacheIdx = pMemoryAddr / blockSizeOfICache % iCacheLength;
@@ -161,6 +214,19 @@ int checkICache(unsigned pMemoryAddr) {
 		if (iCache[cacheIdx][i].valid == 1 && iCache[cacheIdx][i].tag == tempTag) {
 			iCacheTemp = iCache[cacheIdx][i].content;
 			iCache[cacheIdx][i].valid = 0;
+			return 1;
+		}
+	}
+	return 0;
+}
+
+int checkDCache(unsigned pMemoryAddr) {
+	unsigned cacheIdx = pMemoryAddr / blockSizeOfDCache % dCacheLength;
+	unsigned tempTag = pMemoryAddr / blockSizeOfDCache / dCacheLength;
+	for (unsigned i = 0; i < setAssOfDCache; i++) {
+		if (dCache[cacheIdx][i].valid == 1 && dCache[cacheIdx][i].tag == tempTag) {
+			dCacheTemp = dCache[cacheIdx][i].content;
+			dCache[cacheIdx][i].valid = 0;
 			return 1;
 		}
 	}
@@ -183,6 +249,21 @@ unsigned findIMemoryReplaceIdx() {
     return smallestIdx;
 }
 
+unsigned findDMemoryReplaceIdx() {
+    unsigned smallestN = INT_MAX;
+    unsigned smallestIdx;
+	for (unsigned i = 0; i < dMemorySize; i++) {
+        if (dMemory[i].lastcycle < smallestN) {
+            smallestN = dMemory[i].lastcycle;
+            smallestIdx = i;
+        }
+        if (dMemory[i].lastcycle == 0) {
+            return i;
+        }
+    }
+    return smallestIdx;
+}
+
 // Deactivate the iPTE when something is swapped.
 void deactivateIPTE(unsigned idx) {
 	unsigned virtualPageNum = iMemory[idx].diskAddr / iMemoryPageSize;
@@ -194,6 +275,21 @@ void deactivateIPTE(unsigned idx) {
 			unsigned j = i;
 			for (unsigned k = 0; k < blockSizeOfICache; k++) {
 				iMemory[j++].content = iCacheTemp[k];
+			}
+		}
+	}
+}
+
+void deactivateDPTE(unsigned idx) {
+	unsigned virtualPageNum = dMemory[idx].diskAddr / dMemoryPageSize;
+	dPTE[virtualPageNum].valid = 0;
+    // Make sure to move the cache content to the memory.
+	for (unsigned i = idx; i < idx + dMemoryPageSize; i += blockSizeOfDCache) {
+        //printf("%u\n", i);
+		if (checkDCache(i) == 1) {
+			unsigned j = i;
+			for (unsigned k = 0; k < blockSizeOfDCache; k++) {
+				dMemory[j++].content = dCacheTemp[k];
 			}
 		}
 	}
@@ -218,12 +314,37 @@ void swapIMemory(unsigned diskAddr, unsigned idx) {
     }
 }
 
+void swapDMemory(unsigned diskAddr, unsigned idx) {
+    if (dMemory[idx].lastcycle > 0) {
+		deactivateDPTE(idx);
+        for (unsigned i = idx; i < idx + dMemoryPageSize; i++) {
+            dDisk[dMemory[i].diskAddr] = dMemory[i].content;
+            dMemory[i].diskAddr = diskAddr;
+            dMemory[i].content = dDisk[diskAddr++];
+            dMemory[i].lastcycle = cycle;
+        }
+    } else {
+        for (unsigned i = idx; i < idx + dMemoryPageSize; i++) {
+            dMemory[i].diskAddr = diskAddr;
+            dMemory[i].content = dDisk[diskAddr++];
+            dMemory[i].lastcycle = cycle;
+        }
+    }
+}
+
 // Update iPTE.
 void updateIPTE(unsigned vm, unsigned idx) {
 	unsigned PPN = idx / iMemoryPageSize;
 	unsigned virtualPageNum = vm / iMemoryPageSize;
 	iPTE[virtualPageNum].pPageNumber = PPN;
 	iPTE[virtualPageNum].valid = 1;
+}
+
+void updateDPTE(unsigned vm, unsigned idx) {
+	unsigned PPN = idx / dMemoryPageSize;
+	unsigned virtualPageNum = vm / dMemoryPageSize;
+	dPTE[virtualPageNum].pPageNumber = PPN;
+	dPTE[virtualPageNum].valid = 1;
 }
 
 // Find the idx of the TLB for changing.
@@ -242,6 +363,21 @@ unsigned findITLBReplaceIdx() {
     return smallestIdx;
 }
 
+unsigned findDTLBReplaceIdx() {
+	unsigned smallestN = INT_MAX;
+    unsigned smallestIdx;
+    for (unsigned i = 0; i < dTLB.size(); i++) {
+        if (dTLB[i].lastcycle < smallestN) {
+            smallestN = dTLB[i].lastcycle;
+            smallestIdx = i;
+        }
+        if (dTLB[i].lastcycle == 0) {
+            return i;
+        }
+    }
+    return smallestIdx;
+}
+
 // As function name.
 void updateITLBWhenPageTableMiss(unsigned vm, unsigned idx) {
     unsigned idxToReplace = findITLBReplaceIdx();
@@ -252,6 +388,15 @@ void updateITLBWhenPageTableMiss(unsigned vm, unsigned idx) {
     iTLB[idxToReplace].set = PPN;
 }
 
+void updateDTLBWhenPageTableMiss(unsigned vm, unsigned idx) {
+    unsigned idxToReplace = findDTLBReplaceIdx();
+    unsigned virtualPageNum = vm / dMemoryPageSize;
+    unsigned PPN = idx / dMemoryPageSize;
+    dTLB[idxToReplace].lastcycle = cycle;
+    dTLB[idxToReplace].tag = virtualPageNum;
+    dTLB[idxToReplace].set = PPN;
+}
+
 // As function name.
 void updateITLBWhenPageTableHit(unsigned vm) {
     unsigned idxToReplace = findITLBReplaceIdx();
@@ -259,6 +404,14 @@ void updateITLBWhenPageTableHit(unsigned vm) {
     iTLB[idxToReplace].set = iPTE[virtualPageNum].pPageNumber;
     iTLB[idxToReplace].lastcycle = cycle;
     iTLB[idxToReplace].tag = virtualPageNum;
+}
+
+void updateDTLBWhenPageTableHit(unsigned vm) {
+    unsigned idxToReplace = findDTLBReplaceIdx();
+    unsigned virtualPageNum = vm / dMemoryPageSize;
+    dTLB[idxToReplace].set = dPTE[virtualPageNum].pPageNumber;
+    dTLB[idxToReplace].lastcycle = cycle;
+    dTLB[idxToReplace].tag = virtualPageNum;
 }
 
 // [important] Find cache replacing idx. 1->least index not valid, 2->least index MRU == 0.
@@ -277,6 +430,21 @@ unsigned findICacheReplaceIdx(unsigned cacheIdx) {
     return INT_MAX;
 }
 
+unsigned findDCacheReplaceIdx(unsigned cacheIdx) {
+    for (unsigned i = 0; i < dCache[cacheIdx].size(); i++) {
+        if (dCache[cacheIdx][i].valid == 0) {
+            return i;
+        }
+    }
+    for (unsigned i = 0; i < dCache[cacheIdx].size(); i++) {
+        if (dCache[cacheIdx][i].MRU == 0) {
+            return i;
+        }
+    }
+    printf("Error occured at findDCacheReplaceIdx.\n");
+    return INT_MAX;
+}
+
 // Check the cache MRU all one or not.
 unsigned chkICacheMRUAllOne(unsigned cacheIdx) {
     unsigned allOne = 1;
@@ -285,10 +453,24 @@ unsigned chkICacheMRUAllOne(unsigned cacheIdx) {
     return allOne;
 }
 
+unsigned chkDCacheMRUAllOne(unsigned cacheIdx) {
+    unsigned allOne = 1;
+    for (unsigned i = 0; i < dCache[cacheIdx].size(); i++)
+        allOne &= dCache[cacheIdx][i].MRU;
+    return allOne;
+}
+
 // Clear all the MRUs except the one which was just changed.
 void clearICacheMRU(unsigned cacheIdx, unsigned thisIdx) {
+    if (setAssOfICache == 1) iCache[cacheIdx][thisIdx].MRU = 0;
     for (unsigned i = 0; i < iCache[cacheIdx].size(); i++)
         if (i != thisIdx) iCache[cacheIdx][i].MRU = 0;
+}
+
+void clearDCacheMRU(unsigned cacheIdx, unsigned thisIdx) {
+    if (setAssOfDCache == 1) dCache[cacheIdx][thisIdx].MRU = 0;
+    for (unsigned i = 0; i < dCache[cacheIdx].size(); i++)
+        if (i != thisIdx) dCache[cacheIdx][i].MRU = 0;
 }
 
 // [important] Update iCache.
@@ -310,4 +492,24 @@ void updateICache(unsigned pMemoryAddr) {
         iCache[cacheIdx][setToReplace].content[j++] = iMemory[i].content;
     if (chkICacheMRUAllOne(cacheIdx) == 1)
         clearICacheMRU(cacheIdx, setToReplace);
+}
+
+void updateDCache(unsigned pMemoryAddr) {
+    unsigned cacheIdx = pMemoryAddr / blockSizeOfDCache % dCacheLength;
+    unsigned tempTag = pMemoryAddr / blockSizeOfDCache / dCacheLength;
+    unsigned setToReplace = findDCacheReplaceIdx(cacheIdx);
+    // Swap with memory when valid.
+    if (dCache[cacheIdx][setToReplace].valid == 1) {
+        unsigned j = 0;
+        for (unsigned i = pMemoryAddr; i < pMemoryAddr + blockSizeOfDCache; i++)
+            dMemory[i].content = dCache[cacheIdx][setToReplace].content[j++];
+    }
+    dCache[cacheIdx][setToReplace].tag = tempTag;
+    dCache[cacheIdx][setToReplace].MRU = 1;
+    dCache[cacheIdx][setToReplace].valid = 1;
+    unsigned j = 0;
+    for (unsigned i = pMemoryAddr; i < pMemoryAddr + blockSizeOfDCache; i++)
+        dCache[cacheIdx][setToReplace].content[j++] = dMemory[i].content;
+    if (chkDCacheMRUAllOne(cacheIdx) == 1)
+        clearDCacheMRU(cacheIdx, setToReplace);
 }

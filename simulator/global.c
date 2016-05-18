@@ -8,7 +8,8 @@ unsigned dPageTableEntries;
 unsigned iTLBEntries;
 unsigned dTLBEntries;
 
-char *iCachePointer;
+char *iCachePointer, *dCachePointer;
+unsigned dTLBValidSet, dPTEValidPPN;
 unsigned iTLBValidSet, iPTEValidPPN;
 unsigned iCacheHit, iCacheMiss;
 unsigned dCacheHit, dCacheMiss;

@@ -26,14 +26,14 @@ void findOpcode() {
             swapIMemory(PC, iMemoryReplaceIdx);
             updateIPTE(PC, iMemoryReplaceIdx);
             updateITLBWhenPageTableMiss(PC, iMemoryReplaceIdx);
-            // TODO: search cache (in fact, cache must miss)
+            // search cache (in fact, cache must miss)
             int chkICacheHit = checkICacheHit(iMemoryReplaceIdx);
             if (chkICacheHit == 0) {
                 updateICache(iMemoryReplaceIdx);
             } else printf("Error, it's impossible to have miss miss hit(iCache).\n");
         } else {
             updateITLBWhenPageTableHit(PC);
-            // TODO: search cache
+            // search cache
             unsigned iMemoryIdx = iPTEValidPPN * iMemoryPageSize;
             iMemoryIdx = iMemoryIdx | (PC % iMemoryPageSize);
             int chkICacheHit = checkICacheHit(iMemoryIdx);
@@ -41,7 +41,7 @@ void findOpcode() {
                 updateICache(iMemoryIdx);
         }
     } else {
-        // TODO: search cache
+        // search cache
         unsigned iMemoryIdx = iTLBValidSet * iMemoryPageSize;
         iMemoryIdx = iMemoryIdx | (PC % iMemoryPageSize);
         int chkICacheHit = checkICacheHit(iMemoryIdx);
@@ -270,6 +270,37 @@ void run() {
                         findSignedImmediate(&immediate);
                         if (findPosByImmediateWithErrorDetection(3)) return;
                         // Misalignment detection is embedded in the findPos function.
+                        int chkDTLBHit = checkDTLBHit(pos);
+                        if (chkDTLBHit == 0) { // iTLB misses.
+                            int chkDPTEHit = checkDPTEHit(pos);
+                            if (chkDPTEHit == 0) { // iPTE misses.
+                                unsigned dMemoryReplaceIdx = findDMemoryReplaceIdx();
+                                swapDMemory(pos, dMemoryReplaceIdx);
+                                updateDPTE(pos, dMemoryReplaceIdx);
+                                updateDTLBWhenPageTableMiss(pos, dMemoryReplaceIdx);
+                                // search cache (in fact, cache must miss)
+                                int chkDCacheHit = checkDCacheHit(dMemoryReplaceIdx);
+                                if (chkDCacheHit == 0) {
+                                    updateDCache(dMemoryReplaceIdx);
+                                } else printf("Error, it's impossible to have miss miss hit(dCache).\n");
+                            } else {
+                                updateDTLBWhenPageTableHit(pos);
+                                // search cache
+                                unsigned dMemoryIdx = dPTEValidPPN * dMemoryPageSize;
+                                dMemoryIdx = dMemoryIdx | (pos % dMemoryPageSize);
+                                int chkDCacheHit = checkDCacheHit(dMemoryIdx);
+                                if (chkDCacheHit == 0)
+                                    updateDCache(dMemoryIdx);
+                            }
+                        } else {
+                            // search cache
+                            unsigned dMemoryIdx = dTLBValidSet * dMemoryPageSize;
+                            dMemoryIdx = dMemoryIdx | (pos % dMemoryPageSize);
+                            int chkDCacheHit = checkDCacheHit(dMemoryIdx);
+                            if (chkDCacheHit == 0)
+                                updateDCache(dMemoryIdx);
+                        }
+                        // ----- //
                         temp1 = dRun[pos], temp1 = temp1 << 24;
                         temp2 = dRun[pos + 1], temp2 = temp2 << 24 >> 8;
                         temp3 = dRun[pos + 2], temp3 = temp3 << 24 >> 16;
@@ -286,6 +317,37 @@ void run() {
                         findSignedImmediate(&immediate);
                         if (findPosByImmediateWithErrorDetection(1)) return;
                         // Misalignment detection is embedded in the findPos function.
+                        int chkDTLBHit = checkDTLBHit(pos);
+                        if (chkDTLBHit == 0) { // iTLB misses.
+                            int chkDPTEHit = checkDPTEHit(pos);
+                            if (chkDPTEHit == 0) { // iPTE misses.
+                                unsigned dMemoryReplaceIdx = findDMemoryReplaceIdx();
+                                swapDMemory(pos, dMemoryReplaceIdx);
+                                updateDPTE(pos, dMemoryReplaceIdx);
+                                updateDTLBWhenPageTableMiss(pos, dMemoryReplaceIdx);
+                                // search cache (in fact, cache must miss)
+                                int chkDCacheHit = checkDCacheHit(dMemoryReplaceIdx);
+                                if (chkDCacheHit == 0) {
+                                    updateDCache(dMemoryReplaceIdx);
+                                } else printf("Error, it's impossible to have miss miss hit(dCache).\n");
+                            } else {
+                                updateDTLBWhenPageTableHit(pos);
+                                // search cache
+                                unsigned dMemoryIdx = dPTEValidPPN * dMemoryPageSize;
+                                dMemoryIdx = dMemoryIdx | (pos % dMemoryPageSize);
+                                int chkDCacheHit = checkDCacheHit(dMemoryIdx);
+                                if (chkDCacheHit == 0)
+                                    updateDCache(dMemoryIdx);
+                            }
+                        } else {
+                            // search cache
+                            unsigned dMemoryIdx = dTLBValidSet * dMemoryPageSize;
+                            dMemoryIdx = dMemoryIdx | (pos % dMemoryPageSize);
+                            int chkDCacheHit = checkDCacheHit(dMemoryIdx);
+                            if (chkDCacheHit == 0)
+                                updateDCache(dMemoryIdx);
+                        }
+                        // ----- //
                         temp1 = dRun[pos], temp1 = temp1 << 24 >> 16;
                         temp2 = dRun[pos + 1], temp2 = temp2 << 24 >> 24;
                         short shortTemp = temp1 + temp2;
@@ -301,6 +363,37 @@ void run() {
                         findSignedImmediate(&immediate);
                         if (findPosByImmediateWithErrorDetection(1)) return;
                         // Misalignment detection is embedded in the findPos function.
+                        int chkDTLBHit = checkDTLBHit(pos);
+                        if (chkDTLBHit == 0) { // iTLB misses.
+                            int chkDPTEHit = checkDPTEHit(pos);
+                            if (chkDPTEHit == 0) { // iPTE misses.
+                                unsigned dMemoryReplaceIdx = findDMemoryReplaceIdx();
+                                swapDMemory(pos, dMemoryReplaceIdx);
+                                updateDPTE(pos, dMemoryReplaceIdx);
+                                updateDTLBWhenPageTableMiss(pos, dMemoryReplaceIdx);
+                                // search cache (in fact, cache must miss)
+                                int chkDCacheHit = checkDCacheHit(dMemoryReplaceIdx);
+                                if (chkDCacheHit == 0) {
+                                    updateDCache(dMemoryReplaceIdx);
+                                } else printf("Error, it's impossible to have miss miss hit(dCache).\n");
+                            } else {
+                                updateDTLBWhenPageTableHit(pos);
+                                // search cache
+                                unsigned dMemoryIdx = dPTEValidPPN * dMemoryPageSize;
+                                dMemoryIdx = dMemoryIdx | (pos % dMemoryPageSize);
+                                int chkDCacheHit = checkDCacheHit(dMemoryIdx);
+                                if (chkDCacheHit == 0)
+                                    updateDCache(dMemoryIdx);
+                            }
+                        } else {
+                            // search cache
+                            unsigned dMemoryIdx = dTLBValidSet * dMemoryPageSize;
+                            dMemoryIdx = dMemoryIdx | (pos % dMemoryPageSize);
+                            int chkDCacheHit = checkDCacheHit(dMemoryIdx);
+                            if (chkDCacheHit == 0)
+                                updateDCache(dMemoryIdx);
+                        }
+                        // ----- //
                         temp1 = dRun[pos], temp1 = temp1 << 24 >> 16;
                         temp2 = dRun[pos + 1], temp2 = temp2 << 24 >> 24;
                         reg[rt] = temp1 + temp2;
@@ -315,6 +408,37 @@ void run() {
                         findSignedImmediate(&immediate);
                         if (findPosByImmediateWithErrorDetection(0)) return;
                         // No need to detect misalignment.
+                        int chkDTLBHit = checkDTLBHit(pos);
+                        if (chkDTLBHit == 0) { // iTLB misses.
+                            int chkDPTEHit = checkDPTEHit(pos);
+                            if (chkDPTEHit == 0) { // iPTE misses.
+                                unsigned dMemoryReplaceIdx = findDMemoryReplaceIdx();
+                                swapDMemory(pos, dMemoryReplaceIdx);
+                                updateDPTE(pos, dMemoryReplaceIdx);
+                                updateDTLBWhenPageTableMiss(pos, dMemoryReplaceIdx);
+                                // search cache (in fact, cache must miss)
+                                int chkDCacheHit = checkDCacheHit(dMemoryReplaceIdx);
+                                if (chkDCacheHit == 0) {
+                                    updateDCache(dMemoryReplaceIdx);
+                                } else printf("Error, it's impossible to have miss miss hit(dCache).\n");
+                            } else {
+                                updateDTLBWhenPageTableHit(pos);
+                                // search cache
+                                unsigned dMemoryIdx = dPTEValidPPN * dMemoryPageSize;
+                                dMemoryIdx = dMemoryIdx | (pos % dMemoryPageSize);
+                                int chkDCacheHit = checkDCacheHit(dMemoryIdx);
+                                if (chkDCacheHit == 0)
+                                    updateDCache(dMemoryIdx);
+                            }
+                        } else {
+                            // search cache
+                            unsigned dMemoryIdx = dTLBValidSet * dMemoryPageSize;
+                            dMemoryIdx = dMemoryIdx | (pos % dMemoryPageSize);
+                            int chkDCacheHit = checkDCacheHit(dMemoryIdx);
+                            if (chkDCacheHit == 0)
+                                updateDCache(dMemoryIdx);
+                        }
+                        // ----- //
                         reg[rt] = dRun[pos];
                         if (rt == 0)
                             reg[rt] = 0;
@@ -327,6 +451,37 @@ void run() {
                         findSignedImmediate(&immediate);
                         if (findPosByImmediateWithErrorDetection(0)) return;
                         // No need to detect misalignment.
+                        int chkDTLBHit = checkDTLBHit(pos);
+                        if (chkDTLBHit == 0) { // iTLB misses.
+                            int chkDPTEHit = checkDPTEHit(pos);
+                            if (chkDPTEHit == 0) { // iPTE misses.
+                                unsigned dMemoryReplaceIdx = findDMemoryReplaceIdx();
+                                swapDMemory(pos, dMemoryReplaceIdx);
+                                updateDPTE(pos, dMemoryReplaceIdx);
+                                updateDTLBWhenPageTableMiss(pos, dMemoryReplaceIdx);
+                                // search cache (in fact, cache must miss)
+                                int chkDCacheHit = checkDCacheHit(dMemoryReplaceIdx);
+                                if (chkDCacheHit == 0) {
+                                    updateDCache(dMemoryReplaceIdx);
+                                } else printf("Error, it's impossible to have miss miss hit(dCache).\n");
+                            } else {
+                                updateDTLBWhenPageTableHit(pos);
+                                // search cache
+                                unsigned dMemoryIdx = dPTEValidPPN * dMemoryPageSize;
+                                dMemoryIdx = dMemoryIdx | (pos % dMemoryPageSize);
+                                int chkDCacheHit = checkDCacheHit(dMemoryIdx);
+                                if (chkDCacheHit == 0)
+                                    updateDCache(dMemoryIdx);
+                            }
+                        } else {
+                            // search cache
+                            unsigned dMemoryIdx = dTLBValidSet * dMemoryPageSize;
+                            dMemoryIdx = dMemoryIdx | (pos % dMemoryPageSize);
+                            int chkDCacheHit = checkDCacheHit(dMemoryIdx);
+                            if (chkDCacheHit == 0)
+                                updateDCache(dMemoryIdx);
+                        }
+                        // ----- //
                         reg[rt] = dRun[pos], reg[rt] = reg[rt] << 24 >> 24;
                         if (rt == 0)
                             reg[rt] = 0;
@@ -337,6 +492,37 @@ void run() {
                         findSignedImmediate(&immediate);
                         if (findPosByImmediateWithErrorDetection(3)) return;
                         // Misalignment detection is embedded in the findPos function.
+                        int chkDTLBHit = checkDTLBHit(pos);
+                        if (chkDTLBHit == 0) { // iTLB misses.
+                            int chkDPTEHit = checkDPTEHit(pos);
+                            if (chkDPTEHit == 0) { // iPTE misses.
+                                unsigned dMemoryReplaceIdx = findDMemoryReplaceIdx();
+                                swapDMemory(pos, dMemoryReplaceIdx);
+                                updateDPTE(pos, dMemoryReplaceIdx);
+                                updateDTLBWhenPageTableMiss(pos, dMemoryReplaceIdx);
+                                // search cache (in fact, cache must miss)
+                                int chkDCacheHit = checkDCacheHit(dMemoryReplaceIdx);
+                                if (chkDCacheHit == 0) {
+                                    updateDCache(dMemoryReplaceIdx);
+                                } else printf("Error, it's impossible to have miss miss hit(dCache).\n");
+                            } else {
+                                updateDTLBWhenPageTableHit(pos);
+                                // search cache
+                                unsigned dMemoryIdx = dPTEValidPPN * dMemoryPageSize;
+                                dMemoryIdx = dMemoryIdx | (pos % dMemoryPageSize);
+                                int chkDCacheHit = checkDCacheHit(dMemoryIdx);
+                                if (chkDCacheHit == 0)
+                                    updateDCache(dMemoryIdx);
+                            }
+                        } else {
+                            // search cache
+                            unsigned dMemoryIdx = dTLBValidSet * dMemoryPageSize;
+                            dMemoryIdx = dMemoryIdx | (pos % dMemoryPageSize);
+                            int chkDCacheHit = checkDCacheHit(dMemoryIdx);
+                            if (chkDCacheHit == 0)
+                                updateDCache(dMemoryIdx);
+                        }
+                        // ----- // TODO: write to cache
                         dRun[pos] = reg[rt] >> 24;
                         dRun[pos + 1] = reg[rt] << 8 >> 24;
                         dRun[pos + 2] = reg[rt] << 16 >> 24;
@@ -348,6 +534,37 @@ void run() {
                         findSignedImmediate(&immediate);
                         if (findPosByImmediateWithErrorDetection(1)) return;
                         // Misalignment detection is embedded in the findPos function.
+                        int chkDTLBHit = checkDTLBHit(pos);
+                        if (chkDTLBHit == 0) { // iTLB misses.
+                            int chkDPTEHit = checkDPTEHit(pos);
+                            if (chkDPTEHit == 0) { // iPTE misses.
+                                unsigned dMemoryReplaceIdx = findDMemoryReplaceIdx();
+                                swapDMemory(pos, dMemoryReplaceIdx);
+                                updateDPTE(pos, dMemoryReplaceIdx);
+                                updateDTLBWhenPageTableMiss(pos, dMemoryReplaceIdx);
+                                // search cache (in fact, cache must miss)
+                                int chkDCacheHit = checkDCacheHit(dMemoryReplaceIdx);
+                                if (chkDCacheHit == 0) {
+                                    updateDCache(dMemoryReplaceIdx);
+                                } else printf("Error, it's impossible to have miss miss hit(dCache).\n");
+                            } else {
+                                updateDTLBWhenPageTableHit(pos);
+                                // search cache
+                                unsigned dMemoryIdx = dPTEValidPPN * dMemoryPageSize;
+                                dMemoryIdx = dMemoryIdx | (pos % dMemoryPageSize);
+                                int chkDCacheHit = checkDCacheHit(dMemoryIdx);
+                                if (chkDCacheHit == 0)
+                                    updateDCache(dMemoryIdx);
+                            }
+                        } else {
+                            // search cache
+                            unsigned dMemoryIdx = dTLBValidSet * dMemoryPageSize;
+                            dMemoryIdx = dMemoryIdx | (pos % dMemoryPageSize);
+                            int chkDCacheHit = checkDCacheHit(dMemoryIdx);
+                            if (chkDCacheHit == 0)
+                                updateDCache(dMemoryIdx);
+                        }
+                        // ----- // TODO: write to cache
                         dRun[pos] = reg[rt] << 16 >> 24;
                         dRun[pos + 1] = reg[rt] << 24 >> 24;
                         PC += 4;
@@ -357,6 +574,37 @@ void run() {
                         findSignedImmediate(&immediate);
                         if (findPosByImmediateWithErrorDetection(0)) return;
                         // No need to detect misalignment.
+                        int chkDTLBHit = checkDTLBHit(pos);
+                        if (chkDTLBHit == 0) { // iTLB misses.
+                            int chkDPTEHit = checkDPTEHit(pos);
+                            if (chkDPTEHit == 0) { // iPTE misses.
+                                unsigned dMemoryReplaceIdx = findDMemoryReplaceIdx();
+                                swapDMemory(pos, dMemoryReplaceIdx);
+                                updateDPTE(pos, dMemoryReplaceIdx);
+                                updateDTLBWhenPageTableMiss(pos, dMemoryReplaceIdx);
+                                // search cache (in fact, cache must miss)
+                                int chkDCacheHit = checkDCacheHit(dMemoryReplaceIdx);
+                                if (chkDCacheHit == 0) {
+                                    updateDCache(dMemoryReplaceIdx);
+                                } else printf("Error, it's impossible to have miss miss hit(dCache).\n");
+                            } else {
+                                updateDTLBWhenPageTableHit(pos);
+                                // search cache
+                                unsigned dMemoryIdx = dPTEValidPPN * dMemoryPageSize;
+                                dMemoryIdx = dMemoryIdx | (pos % dMemoryPageSize);
+                                int chkDCacheHit = checkDCacheHit(dMemoryIdx);
+                                if (chkDCacheHit == 0)
+                                    updateDCache(dMemoryIdx);
+                            }
+                        } else {
+                            // search cache
+                            unsigned dMemoryIdx = dTLBValidSet * dMemoryPageSize;
+                            dMemoryIdx = dMemoryIdx | (pos % dMemoryPageSize);
+                            int chkDCacheHit = checkDCacheHit(dMemoryIdx);
+                            if (chkDCacheHit == 0)
+                                updateDCache(dMemoryIdx);
+                        }
+                        // ----- // TODO: write to cache
                         dRun[pos] = reg[rt] << 24 >> 24;
                         PC += 4;
                         break;
@@ -489,7 +737,11 @@ int main(int argc, char **argv) {
     run();
     // Last return may be an error, so it's necessary to run errorDump() again.
     errorDump();
+    
     printf("iTLBHit: %u, iPageTableHit: %u, iCacheHit: %u\n", iTLBHit, iPageTableHit, iCacheHit);
     printf("iTLBMiss: %u, iPageTableMiss: %u, iCacheMiss: %u\n", iTLBMiss, iPageTableMiss, iCacheMiss);
+    printf("dTLBHit: %u, dPageTableHit: %u, dCacheHit: %u\n", dTLBHit, dPageTableHit, dCacheHit);
+    printf("dTLBMiss: %u, dPageTableMiss: %u, dCacheMiss: %u\n", dTLBMiss, dPageTableMiss, dCacheMiss);
+    
     return 0;
 }
