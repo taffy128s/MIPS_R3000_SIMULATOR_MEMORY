@@ -8,6 +8,7 @@ void openNLoadFiles() {
     dImg = fopen("dimage.bin", "rb");
     err = fopen("error_dump.rpt", "wb");
     snap = fopen("snapshot.rpt", "wb");
+    report = fopen("report.rpt", "wb");
 
     // Load the files.
     if (iImg == NULL || dImg == NULL)
@@ -49,8 +50,8 @@ void dealWithDImg() {
     // Write the value to D memory.
     for (i = 8; i < 8 + 4 * temp; i++)
         dRun[idx++] = dImgBuffer[i];
-	for (i = 0; i < 1024; i++)
-		dDisk[i] = dRun[i];
+    for (i = 0; i < 1024; i++)
+        dDisk[i] = dRun[i];
 }
 
 void dealWithIImg() {
@@ -67,6 +68,6 @@ void dealWithIImg() {
     idx = PC;
     for (i = 8; i < 8 + 4 * temp; i++)
         iRun[idx++] = iImgBuffer[i];
-	for (i = 0; i < 1024; i++)
-		iDisk[i] = iRun[i];
+    for (i = 0; i < 1024; i++)
+        iDisk[i] = iRun[i];
 }

@@ -30,3 +30,30 @@ void errorDump() {
         fprintf(err, "In cycle %d: Misalignment Error\n", cycle);
     }
 }
+
+void reportDump() {
+    fprintf(report, "ICache :\n");
+    fprintf(report, "# hits: %u\n", iCacheHit);
+    fprintf(report, "# misses: %u\n", iCacheMiss);
+    fprintf(report, "\n");
+    fprintf(report, "DCache :\n");
+    fprintf(report, "# hits: %u\n", dCacheHit);
+    fprintf(report, "# misses: %u\n", dCacheMiss);
+    fprintf(report, "\n");
+    fprintf(report, "ITLB :\n");
+    fprintf(report, "# hits: %u\n", iTLBHit);
+    fprintf(report, "# misses: %u\n", iTLBMiss);
+    fprintf(report, "\n");
+    fprintf(report, "DTLB :\n");
+    fprintf(report, "# hits: %u\n", dTLBHit);
+    fprintf(report, "# misses: %u\n", dTLBMiss);
+    fprintf(report, "\n");
+    fprintf(report, "IPageTable :\n");
+    fprintf(report, "# hits: %u\n", iPageTableHit);
+    fprintf(report, "# misses: %u\n", iPageTableMiss);
+    fprintf(report, "\n");
+    fprintf(report, "DPageTable :\n");
+    fprintf(report, "# hits: %u\n", dPageTableHit);
+    fprintf(report, "# misses: %u\n", dPageTableMiss);
+    fprintf(report, "\n");
+}

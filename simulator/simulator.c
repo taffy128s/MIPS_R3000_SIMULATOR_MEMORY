@@ -18,7 +18,7 @@ static unsigned immediate, signRs, signRt, signRd, signIm, signPos, pos;
 static int intRs, intRt, intIm, temp;
 
 void findOpcode() {
-	int chkITLBHit = checkITLBHit(PC);
+    int chkITLBHit = checkITLBHit(PC);
     if (chkITLBHit == 0) { // iTLB misses.
         int chkIPTEHit = checkIPTEHit(PC);
         if (chkIPTEHit == 0) { // iPTE misses.
@@ -719,17 +719,17 @@ int main(int argc, char **argv) {
         exit(0);
     }
 
-	iCacheLength = totalSizeOfICache / blockSizeOfICache / setAssOfICache;
-	dCacheLength = totalSizeOfDCache / blockSizeOfDCache / setAssOfDCache;
-	iPageTableEntries = 1024 / iMemoryPageSize;
-	dPageTableEntries = 1024 / dMemoryPageSize;
+    iCacheLength = totalSizeOfICache / blockSizeOfICache / setAssOfICache;
+    dCacheLength = totalSizeOfDCache / blockSizeOfDCache / setAssOfDCache;
+    iPageTableEntries = 1024 / iMemoryPageSize;
+    dPageTableEntries = 1024 / dMemoryPageSize;
     iTLBEntries = iPageTableEntries / 4;
     dTLBEntries = dPageTableEntries / 4;
 
-	initTLB();
-	initPTE();
-	initCache();
-	initMemory();
+    initTLB();
+    initPTE();
+    initCache();
+    initMemory();
 
     openNLoadFiles();
     dealWithDImg();
@@ -737,11 +737,12 @@ int main(int argc, char **argv) {
     run();
     // Last return may be an error, so it's necessary to run errorDump() again.
     errorDump();
-    
+    reportDump();
+    /*
     printf("iTLBHit: %u, iPageTableHit: %u, iCacheHit: %u\n", iTLBHit, iPageTableHit, iCacheHit);
     printf("iTLBMiss: %u, iPageTableMiss: %u, iCacheMiss: %u\n", iTLBMiss, iPageTableMiss, iCacheMiss);
     printf("dTLBHit: %u, dPageTableHit: %u, dCacheHit: %u\n", dTLBHit, dPageTableHit, dCacheHit);
     printf("dTLBMiss: %u, dPageTableMiss: %u, dCacheMiss: %u\n", dTLBMiss, dPageTableMiss, dCacheMiss);
-    
+    */
     return 0;
 }

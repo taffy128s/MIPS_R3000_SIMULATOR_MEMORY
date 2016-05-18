@@ -27,4 +27,4 @@ extern unsigned iImgLen, dImgLen, iImgLenResult, dImgLenResult, reg[32], PC, cyc
 extern char *iImgBuffer, *dImgBuffer;
 extern char dRun[1024], iRun[1024];
 extern char dDisk[1024], iDisk[1024];
-extern FILE *err, *snap, *iImg, *dImg;
+extern FILE *err, *snap, *iImg, *dImg, *report;
