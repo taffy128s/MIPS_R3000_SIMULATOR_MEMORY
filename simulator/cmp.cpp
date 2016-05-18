@@ -51,6 +51,7 @@ static vector<cacheBlock> *iCache;
 static vector<cacheBlock> *dCache;
 static memoryBlock *iMemory;
 static memoryBlock *dMemory;
+static char *iCacheTemp;
 
 void initTLB() {
 	for (unsigned i = 0; i < iTLBEntries; i++)
@@ -126,13 +127,28 @@ int checkICacheHit(unsigned pMemoryAddr) {
 	unsigned cacheIdx = pMemoryAddr / blockSizeOfICache % iCacheLength;
     unsigned tempTag = pMemoryAddr / blockSizeOfICache / iCacheLength;
 	for (unsigned i = 0; i < setAssOfICache; i++) {
+		printf("cacheIdx: %u, finding Tag: %u\n", cacheIdx, tempTag);
 		if (iCache[cacheIdx][i].valid == 1 && iCache[cacheIdx][i].tag == tempTag) {
 			iCachePointer = iCache[cacheIdx][i].content + pMemoryAddr % blockSizeOfICache;
 			iCacheHit++;
+			puts("hit!");
 			return 1;
 		}
 	}
 	iCacheMiss++;
+	return 0;
+}
+
+int checkICache(unsigned pMemoryAddr) {
+	unsigned cacheIdx = pMemoryAddr / blockSizeOfICache % iCacheLength;
+	unsigned tempTag = pMemoryAddr / blockSizeOfICache / iCacheLength;
+	for (unsigned i = 0; i < setAssOfICache; i++) {
+		if (iCache[cacheIdx][i].valid == 1 && iCache[cacheIdx][i].tag == tempTag) {
+			iCacheTemp = iCache[cacheIdx][i].content;
+			iCache[cacheIdx][i].valid = 0;
+			return 1;
+		}
+	}
 	return 0;
 }
 
@@ -154,6 +170,15 @@ unsigned findIMemoryReplaceIdx() {
 void deactivateIPTE(unsigned idx) {
 	unsigned virtualPageNum = iMemory[idx].diskAddr / iMemoryPageSize;
 	iPTE[virtualPageNum].valid = 0;
+	for (unsigned i = idx; i < idx + iMemoryPageSize; i += blockSizeOfICache) {
+		printf("yo\n");
+		if (checkICache(i) == 1) {
+			unsigned j = i;
+			for (unsigned k = 0; k < blockSizeOfICache; k++) {
+				iMemory[j++].content = iCacheTemp[k];
+			}
+		}
+	}
 }
 
 void swapIMemory(unsigned diskAddr, unsigned idx) {
@@ -253,5 +278,5 @@ void updateICache(unsigned pMemoryAddr) {
         iCache[cacheIdx][setToReplace].content[j++] = iMemory[i].content;
     if (chkICachePseudoAllOne(cacheIdx) == 1)
         clearICachePseudo(cacheIdx, setToReplace);
-    
+
 }
