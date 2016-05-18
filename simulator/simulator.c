@@ -27,12 +27,26 @@ void findOpcode() {
             updateIPTE(PC, iMemoryReplaceIdx);
             updateITLBWhenPageTableMiss(PC, iMemoryReplaceIdx);
             // TODO: search cache (in fact, cache must miss)
+            int chkICacheHit = checkICacheHit(iMemoryReplaceIdx);
+            if (chkICacheHit == 0) {
+                updateICache(iMemoryReplaceIdx);
+            } else printf("Error, it's impossible to have miss miss hit(iCache).\n");
         } else {
             updateITLBWhenPageTableHit(PC);
             // TODO: search cache
+            unsigned iMemoryIdx = iPTEValidPPN * iMemoryPageSize;
+            iMemoryIdx = iMemoryIdx | (PC % iMemoryPageSize);
+            int chkICacheHit = checkICacheHit(iMemoryIdx);
+            if (chkICacheHit == 0)
+                updateICache(iMemoryIdx);
         }
     } else {
         // TODO: search cache
+        unsigned iMemoryIdx = iTLBValidSet * iMemoryPageSize;
+        iMemoryIdx = iMemoryIdx | (PC % iMemoryPageSize);
+        int chkICacheHit = checkICacheHit(iMemoryIdx);
+        if (chkICacheHit == 0)
+            updateICache(iMemoryIdx);
     }
     opcode = iRun[PC];
     opcode = opcode >> 2 << 26 >> 26;
@@ -475,7 +489,7 @@ int main(int argc, char **argv) {
     run();
     // Last return may be an error, so it's necessary to run errorDump() again.
     errorDump();
-    printf("iTLBHit: %u, iPageTableHit: %u\n", iTLBHit, iPageTableHit);
-    printf("iTLBMiss: %u, iPageTableMiss: %u\n", iTLBMiss, iPageTableMiss);
+    printf("iTLBHit: %u, iPageTableHit: %u, iCacheHit: %u\n", iTLBHit, iPageTableHit, iCacheHit);
+    printf("iTLBMiss: %u, iPageTableMiss: %u, iCacheMiss: %u\n", iTLBMiss, iPageTableMiss, iCacheMiss);
     return 0;
 }

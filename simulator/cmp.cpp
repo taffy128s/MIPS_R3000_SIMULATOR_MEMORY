@@ -26,13 +26,14 @@ struct pte {
 
 // cache block size can be configured
 struct cacheBlock {
-	unsigned tag, valid, content, pseudoLRU;
+	unsigned tag, valid, pseudoLRU;
+    char *content;
 	cacheBlock() {}
-	cacheBlock(unsigned tag, unsigned valid, unsigned pseudoLRU, unsigned content) {
+	cacheBlock(unsigned tag, unsigned valid, unsigned pseudoLRU) {
 		this->tag = tag;
 		this->valid = valid;
         this->pseudoLRU = pseudoLRU;
-		this->content = content;
+		this->content = new char[blockSizeOfICache];
 	}
 };
 
@@ -71,16 +72,15 @@ void initPTE() {
 	}
 }
 
-// TODO: configurable cache block size
 void initCache() {
 	iCache = new vector<cacheBlock>[iCacheLength];
 	for (unsigned i = 0; i < iCacheLength; i++)
 		for (unsigned j = 0; j < setAssOfICache; j++)
-			iCache[i].push_back(cacheBlock(0, 0, 0, 0));
+			iCache[i].push_back(cacheBlock(0, 0, 0));
 	dCache = new vector<cacheBlock>[dCacheLength];
 	for (unsigned i = 0; i < dCacheLength; i++)
 		for (unsigned j = 0; j < setAssOfDCache; j++)
-			dCache[i].push_back(cacheBlock(0, 0, 0, 0));
+			dCache[i].push_back(cacheBlock(0, 0, 0));
 }
 
 void initMemory() {
@@ -122,13 +122,12 @@ int checkIPTEHit(unsigned vm) {
 	return 0;
 }
 
-// TODO: configurable cache block size
 int checkICacheHit(unsigned pMemoryAddr) {
-	unsigned cacheIdx = pMemoryAddr % iCacheLength;
-    unsigned tempTag = pMemoryAddr / iCacheLength;
+	unsigned cacheIdx = pMemoryAddr / blockSizeOfICache % iCacheLength;
+    unsigned tempTag = pMemoryAddr / blockSizeOfICache / iCacheLength;
 	for (unsigned i = 0; i < setAssOfICache; i++) {
 		if (iCache[cacheIdx][i].valid == 1 && iCache[cacheIdx][i].tag == tempTag) {
-			iCacheContent = iCache[cacheIdx][i].content;
+			iCachePointer = iCache[cacheIdx][i].content + pMemoryAddr % blockSizeOfICache;
 			iCacheHit++;
 			return 1;
 		}
@@ -224,13 +223,35 @@ unsigned findICacheReplaceIdx(unsigned cacheIdx) {
     return INT_MAX;
 }
 
-// TODO: configurable cache block size
+unsigned chkICachePseudoAllOne(unsigned cacheIdx) {
+    unsigned allOne = 1;
+    for (unsigned i = 0; i < iCache[cacheIdx].size(); i++)
+        allOne &= iCache[cacheIdx][i].pseudoLRU;
+    return allOne;
+}
+
+void clearICachePseudo(unsigned cacheIdx, unsigned thisIdx) {
+    for (unsigned i = 0; i < iCache[cacheIdx].size(); i++)
+        if (i != thisIdx) iCache[cacheIdx][i].pseudoLRU = 0;
+}
+
 void updateICache(unsigned pMemoryAddr) {
-    unsigned cacheIdx = pMemoryAddr % iCacheLength;
-    unsigned tempTag = pMemoryAddr / iCacheLength;
+    unsigned cacheIdx = pMemoryAddr / blockSizeOfICache % iCacheLength;
+    unsigned tempTag = pMemoryAddr / blockSizeOfICache / iCacheLength;
     unsigned setToReplace = findICacheReplaceIdx(cacheIdx);
+    if (iCache[cacheIdx][setToReplace].valid == 1) {
+        // TODO: swap with iMemory
+        unsigned j = 0;
+        for (unsigned i = pMemoryAddr; i < pMemoryAddr + blockSizeOfICache; i++)
+            iMemory[i].content = iCache[cacheIdx][setToReplace].content[j++];
+    }
     iCache[cacheIdx][setToReplace].tag = tempTag;
     iCache[cacheIdx][setToReplace].pseudoLRU = 1;
     iCache[cacheIdx][setToReplace].valid = 1;
-    //iCache[cacheIdx][setToReplace].content = 
+    unsigned j = 0;
+    for (unsigned i = pMemoryAddr; i < pMemoryAddr + blockSizeOfICache; i++)
+        iCache[cacheIdx][setToReplace].content[j++] = iMemory[i].content;
+    if (chkICachePseudoAllOne(cacheIdx) == 1)
+        clearICachePseudo(cacheIdx, setToReplace);
+    
 }
