@@ -110,14 +110,25 @@ void initMemory() {
 // Check iTLB hits or not. If yes, update the values of lastcycle and iTLBValidSet.
 int checkITLBHit(unsigned vm) {
     unsigned tempPageNum = vm / iMemoryPageSize;
+    /*puts("---------------");
+    for (unsigned i = 0; i < dTLB.size(); i++)
+        printf("%4u ", iTLB[i].tag);
+    puts("");
+    for (unsigned i = 0; i < dTLB.size(); i++)
+        printf("%4u ", iTLB[i].lastcycle);
+    puts("");
+    printf("Target tag: %u\n", tempPageNum);
+    puts("-----------------");*/
     for (unsigned i = 0; i < iTLB.size(); i++) {
         if (iTLB[i].lastcycle > 0 && iTLB[i].tag == tempPageNum) {
             iTLB[i].lastcycle = cycle;
             iTLBValidSet = iTLB[i].set;
             iTLBHit++;
+            //puts("ITLB hit!");
             return 1;
         }
     }
+    //puts("ITLB miss!");
     iTLBMiss++;
     return 0;
 }
@@ -142,6 +153,7 @@ int checkDTLBHit(unsigned vm) {
             return 1;
         }
     }
+    //puts("DTLB miss!");
     dTLBMiss++;
     return 0;
 }
@@ -264,9 +276,29 @@ unsigned findDMemoryReplaceIdx() {
     return smallestIdx;
 }
 
+// Deactivate TLBs.
+void deactivateITLB(unsigned vpn) {
+    unsigned tempPageNum = vpn;
+    for (unsigned i= 0; i < iTLB.size(); i++) {
+        if (iTLB[i].lastcycle > 0 && iTLB[i].tag == tempPageNum) {
+            iTLB[i].lastcycle = 0;
+        }
+    }
+}
+
+void deactivateDTLB(unsigned vpn) {
+    unsigned tempPageNum = vpn;
+    for (unsigned i= 0; i < dTLB.size(); i++) {
+        if (dTLB[i].lastcycle > 0 && dTLB[i].tag == tempPageNum) {
+            dTLB[i].lastcycle = 0;
+        }
+    }
+}
+
 // Deactivate the iPTE when something is swapped.
 void deactivateIPTE(unsigned idx) {
     unsigned virtualPageNum = iMemory[idx].diskAddr / iMemoryPageSize;
+    deactivateITLB(virtualPageNum);
     iPTE[virtualPageNum].valid = 0;
     // Make sure to move the cache content to the memory.
     for (unsigned i = idx; i < idx + iMemoryPageSize; i += blockSizeOfICache) {
@@ -282,6 +314,7 @@ void deactivateIPTE(unsigned idx) {
 
 void deactivateDPTE(unsigned idx) {
     unsigned virtualPageNum = dMemory[idx].diskAddr / dMemoryPageSize;
+    deactivateDTLB(virtualPageNum);
     dPTE[virtualPageNum].valid = 0;
     // Make sure to move the cache content to the memory.
     for (unsigned i = idx; i < idx + dMemoryPageSize; i += blockSizeOfDCache) {

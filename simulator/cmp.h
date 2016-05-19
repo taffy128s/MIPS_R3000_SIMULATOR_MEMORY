@@ -38,6 +38,12 @@ unsigned findDMemoryReplaceIdx();
 
 /***/
 
+void deactivateITLB(unsigned vpn);
+
+void deactivateDTLB(unsigned vpn);
+
+/***/
+
 void deactivateIPTE(unsigned idx);
 
 void deactivateDPTE(unsigned idx);
