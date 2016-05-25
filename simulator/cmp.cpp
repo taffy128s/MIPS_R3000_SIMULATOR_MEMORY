@@ -185,6 +185,12 @@ int checkDPTEHit(unsigned vm) {
 int checkICacheHit(unsigned pMemoryAddr) {
     unsigned cacheIdx = pMemoryAddr / blockSizeOfICache % iCacheLength;
     unsigned tempTag = pMemoryAddr / blockSizeOfICache / iCacheLength;
+    /*for (unsigned i = 0; i < iCacheLength; i++) {
+        for (unsigned j = 0; j < setAssOfICache; j++) {
+            printf("[%3u %3u %3u] ", iCache[i][j].tag, iCache[i][j].valid, iCache[i][j].MRU);
+        }
+        puts("");
+    }*/
     for (unsigned i = 0; i < setAssOfICache; i++) {
         if (iCache[cacheIdx][i].valid == 1 && iCache[cacheIdx][i].tag == tempTag) {
             // important!!
@@ -193,6 +199,7 @@ int checkICacheHit(unsigned pMemoryAddr) {
                 clearICacheMRU(cacheIdx, i);
             iCachePointer = iCache[cacheIdx][i].content + pMemoryAddr % blockSizeOfICache;
             iCacheHit++;
+            //puts("iCache hit!");
             return 1;
         }
     }
@@ -511,17 +518,18 @@ void updateICache(unsigned pMemoryAddr) {
     unsigned cacheIdx = pMemoryAddr / blockSizeOfICache % iCacheLength;
     unsigned tempTag = pMemoryAddr / blockSizeOfICache / iCacheLength;
     unsigned setToReplace = findICacheReplaceIdx(cacheIdx);
+    unsigned pos = pMemoryAddr / blockSizeOfDCache * blockSizeOfDCache;
     // Swap with memory when valid.
     if (iCache[cacheIdx][setToReplace].valid == 1) {
         unsigned j = 0;
-        for (unsigned i = pMemoryAddr; i < pMemoryAddr + blockSizeOfICache; i++)
+        for (unsigned i = pos; i < pos + blockSizeOfICache; i++)
             iMemory[i].content = iCache[cacheIdx][setToReplace].content[j++];
     }
     iCache[cacheIdx][setToReplace].tag = tempTag;
     iCache[cacheIdx][setToReplace].MRU = 1;
     iCache[cacheIdx][setToReplace].valid = 1;
     unsigned j = 0;
-    for (unsigned i = pMemoryAddr; i < pMemoryAddr + blockSizeOfICache; i++)
+    for (unsigned i = pos; i < pos + blockSizeOfICache; i++)
         iCache[cacheIdx][setToReplace].content[j++] = iMemory[i].content;
     if (chkICacheMRUAllOne(cacheIdx) == 1)
         clearICacheMRU(cacheIdx, setToReplace);
@@ -531,17 +539,18 @@ void updateDCache(unsigned pMemoryAddr) {
     unsigned cacheIdx = pMemoryAddr / blockSizeOfDCache % dCacheLength;
     unsigned tempTag = pMemoryAddr / blockSizeOfDCache / dCacheLength;
     unsigned setToReplace = findDCacheReplaceIdx(cacheIdx);
+    unsigned pos = pMemoryAddr / blockSizeOfDCache * blockSizeOfDCache;
     // Swap with memory when valid.
     if (dCache[cacheIdx][setToReplace].valid == 1) {
         unsigned j = 0;
-        for (unsigned i = pMemoryAddr; i < pMemoryAddr + blockSizeOfDCache; i++)
+        for (unsigned i = pos; i < pos + blockSizeOfDCache; i++)
             dMemory[i].content = dCache[cacheIdx][setToReplace].content[j++];
     }
     dCache[cacheIdx][setToReplace].tag = tempTag;
     dCache[cacheIdx][setToReplace].MRU = 1;
     dCache[cacheIdx][setToReplace].valid = 1;
     unsigned j = 0;
-    for (unsigned i = pMemoryAddr; i < pMemoryAddr + blockSizeOfDCache; i++)
+    for (unsigned i = pos; i < pos + blockSizeOfDCache; i++)
         dCache[cacheIdx][setToReplace].content[j++] = dMemory[i].content;
     if (chkDCacheMRUAllOne(cacheIdx) == 1)
         clearDCacheMRU(cacheIdx, setToReplace);
