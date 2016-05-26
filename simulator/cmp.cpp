@@ -544,7 +544,7 @@ void updateICache(unsigned pMemoryAddr) {
     unsigned j = 0;
     for (unsigned i = pos; i < pos + blockSizeOfICache; i++) {
         iCache[cacheIdx][setToReplace].content[j++] = iMemory[i].content;
-        iMemory[i].lastcycle = cycle;
+        //iMemory[i].lastcycle = cycle;
     }
     if (chkICacheMRUAllOne(cacheIdx) == 1)
         clearICacheMRU(cacheIdx, setToReplace);
@@ -567,7 +567,7 @@ void updateDCache(unsigned pMemoryAddr) {
     unsigned j = 0;
     for (unsigned i = pos; i < pos + blockSizeOfDCache; i++) {
         dCache[cacheIdx][setToReplace].content[j++] = dMemory[i].content;
-        dMemory[i].lastcycle = cycle;
+        //dMemory[i].lastcycle = cycle;
     }
     if (chkDCacheMRUAllOne(cacheIdx) == 1)
         clearDCacheMRU(cacheIdx, setToReplace);
