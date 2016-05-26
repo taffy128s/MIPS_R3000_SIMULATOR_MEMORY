@@ -122,9 +122,9 @@ int checkITLBHit(unsigned vm) {
     for (unsigned i = 0; i < iTLB.size(); i++) {
         if (iTLB[i].lastcycle > 0 && iTLB[i].tag == tempPageNum) {
             iTLB[i].lastcycle = cycle;
-            unsigned pos = iPTE[tempPageNum].pPageNumber * iMemoryPageSize;
+            /*unsigned pos = iPTE[tempPageNum].pPageNumber * iMemoryPageSize;
             for (unsigned j = pos; j < pos + iMemoryPageSize; j++)
-                iMemory[j].lastcycle = cycle;
+                iMemory[j].lastcycle = cycle;*/
             iTLBValidSet = iTLB[i].set;
             iTLBHit++;
             //puts("ITLB hit!");
@@ -150,9 +150,9 @@ int checkDTLBHit(unsigned vm) {
     for (unsigned i = 0; i < dTLB.size(); i++) {
         if (dTLB[i].lastcycle > 0 && dTLB[i].tag == tempPageNum) {
             dTLB[i].lastcycle = cycle;
-            unsigned pos = dPTE[tempPageNum].pPageNumber * dMemoryPageSize;
+            /*unsigned pos = dPTE[tempPageNum].pPageNumber * dMemoryPageSize;
             for (unsigned j = pos; j < pos + dMemoryPageSize; j++)
-                dMemory[j].lastcycle = cycle;
+                dMemory[j].lastcycle = cycle;*/
             dTLBValidSet = dTLB[i].set;
             dTLBHit++;
             //puts("DTLB hit!");
@@ -169,9 +169,9 @@ int checkIPTEHit(unsigned vm) {
     unsigned tempPageNum = vm / iMemoryPageSize;
     if (iPTE[tempPageNum].valid == 1) {
         iPTEValidPPN = iPTE[tempPageNum].pPageNumber;
-        unsigned pos = iPTE[tempPageNum].pPageNumber * iMemoryPageSize;
+        /*unsigned pos = iPTE[tempPageNum].pPageNumber * iMemoryPageSize;
         for (unsigned i = pos; i < pos + iMemoryPageSize; i++)
-            iMemory[i].lastcycle = cycle;
+            iMemory[i].lastcycle = cycle;*/
         iPageTableHit++;
         return 1;
     }
@@ -183,9 +183,9 @@ int checkDPTEHit(unsigned vm) {
     unsigned tempPageNum = vm / dMemoryPageSize;
     if (dPTE[tempPageNum].valid == 1) {
         dPTEValidPPN = dPTE[tempPageNum].pPageNumber;
-        unsigned pos = dPTE[tempPageNum].pPageNumber * dMemoryPageSize;
+        /*unsigned pos = dPTE[tempPageNum].pPageNumber * dMemoryPageSize;
         for (unsigned i = pos; i < pos + dMemoryPageSize; i++)
-            dMemory[i].lastcycle = cycle;
+            dMemory[i].lastcycle = cycle;*/
         dPageTableHit++;
         return 1;
     }
@@ -542,8 +542,10 @@ void updateICache(unsigned pMemoryAddr) {
     iCache[cacheIdx][setToReplace].MRU = 1;
     iCache[cacheIdx][setToReplace].valid = 1;
     unsigned j = 0;
-    for (unsigned i = pos; i < pos + blockSizeOfICache; i++)
+    for (unsigned i = pos; i < pos + blockSizeOfICache; i++) {
         iCache[cacheIdx][setToReplace].content[j++] = iMemory[i].content;
+        iMemory[i].lastcycle = cycle;
+    }
     if (chkICacheMRUAllOne(cacheIdx) == 1)
         clearICacheMRU(cacheIdx, setToReplace);
 }
@@ -563,8 +565,10 @@ void updateDCache(unsigned pMemoryAddr) {
     dCache[cacheIdx][setToReplace].MRU = 1;
     dCache[cacheIdx][setToReplace].valid = 1;
     unsigned j = 0;
-    for (unsigned i = pos; i < pos + blockSizeOfDCache; i++)
+    for (unsigned i = pos; i < pos + blockSizeOfDCache; i++) {
         dCache[cacheIdx][setToReplace].content[j++] = dMemory[i].content;
+        dMemory[i].lastcycle = cycle;
+    }
     if (chkDCacheMRUAllOne(cacheIdx) == 1)
         clearDCacheMRU(cacheIdx, setToReplace);
 }
