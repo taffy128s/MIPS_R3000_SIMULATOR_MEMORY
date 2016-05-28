@@ -8,7 +8,6 @@ extern unsigned dPageTableEntries;
 extern unsigned iTLBEntries;
 extern unsigned dTLBEntries;
 
-extern char *iCachePointer, *dCachePointer;
 extern unsigned dTLBValidSet, dPTEValidPPN;
 extern unsigned iTLBValidSet, iPTEValidPPN;
 extern unsigned iCacheHit, iCacheMiss;
