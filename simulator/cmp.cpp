@@ -31,11 +31,11 @@ struct cacheBlock {
     unsigned tag, valid, MRU;
     char *content;
     cacheBlock() {}
-    cacheBlock(unsigned tag, unsigned valid, unsigned MRU) {
+    cacheBlock(unsigned tag, unsigned valid, unsigned MRU, unsigned blocksize) {
         this->tag = tag;
         this->valid = valid;
         this->MRU = MRU;
-        this->content = new char[blockSizeOfICache];
+        this->content = new char[blocksize];
     }
 };
 
@@ -84,11 +84,11 @@ void initCache() {
     iCache = new vector<cacheBlock>[iCacheLength];
     for (unsigned i = 0; i < iCacheLength; i++)
         for (unsigned j = 0; j < setAssOfICache; j++)
-            iCache[i].push_back(cacheBlock(0, 0, 0));
+            iCache[i].push_back(cacheBlock(0, 0, 0, blockSizeOfICache));
     dCache = new vector<cacheBlock>[dCacheLength];
     for (unsigned i = 0; i < dCacheLength; i++)
         for (unsigned j = 0; j < setAssOfDCache; j++)
-            dCache[i].push_back(cacheBlock(0, 0, 0));
+            dCache[i].push_back(cacheBlock(0, 0, 0, blockSizeOfDCache));
 }
 
 // Initialize the memories.
@@ -469,12 +469,12 @@ void updateDTLBWhenPageTableHit(unsigned vm) {
 
 // [important] Find cache replacing idx. 1->least index not valid, 2->least index MRU == 0.
 unsigned findICacheReplaceIdx(unsigned cacheIdx) {
-    for (unsigned i = 0; i < iCache[cacheIdx].size(); i++) {
+    for (unsigned i = 0; i < setAssOfICache; i++) {
         if (iCache[cacheIdx][i].valid == 0) {
             return i;
         }
     }
-    for (unsigned i = 0; i < iCache[cacheIdx].size(); i++) {
+    for (unsigned i = 0; i < setAssOfICache; i++) {
         if (iCache[cacheIdx][i].MRU == 0) {
             return i;
         }
@@ -484,12 +484,12 @@ unsigned findICacheReplaceIdx(unsigned cacheIdx) {
 }
 
 unsigned findDCacheReplaceIdx(unsigned cacheIdx) {
-    for (unsigned i = 0; i < dCache[cacheIdx].size(); i++) {
+    for (unsigned i = 0; i < setAssOfDCache; i++) {
         if (dCache[cacheIdx][i].valid == 0) {
             return i;
         }
     }
-    for (unsigned i = 0; i < dCache[cacheIdx].size(); i++) {
+    for (unsigned i = 0; i < setAssOfDCache; i++) {
         if (dCache[cacheIdx][i].MRU == 0) {
             return i;
         }
@@ -501,14 +501,14 @@ unsigned findDCacheReplaceIdx(unsigned cacheIdx) {
 // Check the cache MRU all one or not.
 unsigned chkICacheMRUAllOne(unsigned cacheIdx) {
     unsigned allOne = 1;
-    for (unsigned i = 0; i < iCache[cacheIdx].size(); i++)
+    for (unsigned i = 0; i < setAssOfICache; i++)
         allOne &= iCache[cacheIdx][i].MRU;
     return allOne;
 }
 
 unsigned chkDCacheMRUAllOne(unsigned cacheIdx) {
     unsigned allOne = 1;
-    for (unsigned i = 0; i < dCache[cacheIdx].size(); i++)
+    for (unsigned i = 0; i < setAssOfDCache; i++)
         allOne &= dCache[cacheIdx][i].MRU;
     return allOne;
 }
