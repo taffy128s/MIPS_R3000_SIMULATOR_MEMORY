@@ -384,11 +384,11 @@ void updateDTLBWhenPageTableHit(unsigned vm) {
 }
 
 unsigned findICacheReplaceIdx(unsigned cacheIdx) {
-    /*for (unsigned i = 0; i < setAssOfICache; i++) {
+    for (unsigned i = 0; i < setAssOfICache; i++) {
         if (iCache[cacheIdx][i].valid == 0) {
             return i;
         }
-    }*/
+    }
     for (unsigned i = 0; i < setAssOfICache; i++) {
         if (iCache[cacheIdx][i].MRU == 0) {
             return i;
@@ -399,11 +399,11 @@ unsigned findICacheReplaceIdx(unsigned cacheIdx) {
 }
 
 unsigned findDCacheReplaceIdx(unsigned cacheIdx) {
-    /*for (unsigned i = 0; i < setAssOfDCache; i++) {
+    for (unsigned i = 0; i < setAssOfDCache; i++) {
         if (dCache[cacheIdx][i].valid == 0) {
             return i;
         }
-    }*/
+    }
     for (unsigned i = 0; i < setAssOfDCache; i++) {
         if (dCache[cacheIdx][i].MRU == 0) {
             return i;
