@@ -34,14 +34,12 @@ struct cacheBlock {
     }
 };
 
-// A memory block contains content, last cycle for LRU, diskAddr.
 struct memoryBlock {
     char content;
     unsigned lastcycle;
     unsigned diskAddr;
 };
 
-// Declare all the variables.
 static vector<tlb> iTLB;
 static vector<tlb> dTLB;
 static pte *iPTE;
@@ -82,7 +80,6 @@ void initCache() {
             dCache[i].push_back(cacheBlock(0, 0, 0));
 }
 
-// Initialize the memories.
 void initMemory() {
     iMemory = new memoryBlock[iMemorySize];
     for (unsigned i = 0; i < iMemorySize; i++) {
@@ -151,24 +148,16 @@ int checkDPTEHit(unsigned vm) {
 int checkICacheHit(unsigned pMemoryAddr) {
     unsigned cacheIdx = pMemoryAddr / blockSizeOfICache % iCacheLength;
     unsigned tempTag = pMemoryAddr / blockSizeOfICache / iCacheLength;
-    /*for (unsigned i = 0; i < iCacheLength; i++) {
-        for (unsigned j = 0; j < setAssOfICache; j++) {
-            printf("[%3u %3u %3u] ", iCache[i][j].tag, iCache[i][j].valid, iCache[i][j].MRU);
-        }
-        puts("");
-    }*/
     for (unsigned i = 0; i < setAssOfICache; i++) {
         if (iCache[cacheIdx][i].valid == 1 && iCache[cacheIdx][i].tag == tempTag) {
             iCache[cacheIdx][i].MRU = 1;
             if (chkICacheMRUAllOne(cacheIdx) == 1)
                 clearICacheMRU(cacheIdx, i);
             iCacheHit++;
-            //puts("hit!");
             return 1;
         }
     }
     iCacheMiss++;
-    //puts("miss!");
     return 0;
 }
 
@@ -194,6 +183,7 @@ int checkICache(unsigned pMemoryAddr) {
     for (unsigned i = 0; i < setAssOfICache; i++) {
         if (iCache[cacheIdx][i].valid == 1 && iCache[cacheIdx][i].tag == tempTag) {
             iCache[cacheIdx][i].valid = 0;
+            iCache[cacheIdx][i].MRU = 0;
             return 1;
         }
     }
@@ -206,6 +196,7 @@ int checkDCache(unsigned pMemoryAddr) {
     for (unsigned i = 0; i < setAssOfDCache; i++) {
         if (dCache[cacheIdx][i].valid == 1 && dCache[cacheIdx][i].tag == tempTag) {
             dCache[cacheIdx][i].valid = 0;
+            dCache[cacheIdx][i].MRU = 0;
             return 1;
         }
     }
