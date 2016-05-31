@@ -101,6 +101,9 @@ int checkITLBHit(unsigned vm) {
         if (iTLB[i].lastcycle > 0 && iTLB[i].tag == tempPageNum) {
             iTLB[i].lastcycle = cycle;
             iTLBValidSet = iTLB[i].set;
+            /*unsigned PA = iTLB[i].set * iMemoryPageSize;
+            for (unsigned i = PA; i < PA + iMemoryPageSize; i++)
+                iMemory[i].lastcycle = cycle;*/
             iTLBHit++;
             return 1;
         }
@@ -115,6 +118,9 @@ int checkDTLBHit(unsigned vm) {
         if (dTLB[i].lastcycle > 0 && dTLB[i].tag == tempPageNum) {
             dTLB[i].lastcycle = cycle;
             dTLBValidSet = dTLB[i].set;
+            /*unsigned PA = dTLB[i].set * dMemoryPageSize;
+            for (unsigned i = PA; i < PA + dMemoryPageSize; i++)
+                dMemory[i].lastcycle = cycle;*/
             dTLBHit++;
             return 1;
         }
@@ -127,6 +133,9 @@ int checkIPTEHit(unsigned vm) {
     unsigned tempPageNum = vm / iMemoryPageSize;
     if (iPTE[tempPageNum].valid == 1) {
         iPTEValidPPN = iPTE[tempPageNum].pPageNumber;
+        unsigned PA = iPTE[tempPageNum].pPageNumber * iMemoryPageSize;
+        for (unsigned i = PA; i < PA + iMemoryPageSize; i++)
+            iMemory[i].lastcycle = cycle;
         iPageTableHit++;
         return 1;
     }
@@ -138,6 +147,9 @@ int checkDPTEHit(unsigned vm) {
     unsigned tempPageNum = vm / dMemoryPageSize;
     if (dPTE[tempPageNum].valid == 1) {
         dPTEValidPPN = dPTE[tempPageNum].pPageNumber;
+        unsigned PA = dPTE[tempPageNum].pPageNumber * dMemoryPageSize;
+        for (unsigned i = PA; i < PA + dMemoryPageSize; i++)
+            dMemory[i].lastcycle = cycle;
         dPageTableHit++;
         return 1;
     }
@@ -162,6 +174,11 @@ int checkICacheHit(unsigned pMemoryAddr) {
 }
 
 int checkDCacheHit(unsigned pMemoryAddr) {
+    /*puts(" VALID TAG VALID TAG VALID TAG VALID TAG ");
+    for (unsigned i = 0; i < dCacheLength; i++) {
+        printf("[%3u %3u] ", dCache[i][0].valid, dCache[i][0].tag);
+    }
+    puts("");*/
     unsigned cacheIdx = pMemoryAddr / blockSizeOfDCache % dCacheLength;
     unsigned tempTag = pMemoryAddr / blockSizeOfDCache / dCacheLength;
     for (unsigned i = 0; i < setAssOfDCache; i++) {
