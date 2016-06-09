@@ -174,11 +174,11 @@ int checkICacheHit(unsigned pMemoryAddr) {
 }
 
 int checkDCacheHit(unsigned pMemoryAddr) {
-    /*puts(" VALID TAG VALID TAG VALID TAG VALID TAG ");
+    puts(" VALID TAG VALID TAG VALID TAG VALID TAG ");
     for (unsigned i = 0; i < dCacheLength; i++) {
         printf("[%3u %3u] ", dCache[i][0].valid, dCache[i][0].tag);
     }
-    puts("");*/
+    printf("\ncycle: %u, target addr: %u\n", cycle, pMemoryAddr);
     unsigned cacheIdx = pMemoryAddr / blockSizeOfDCache % dCacheLength;
     unsigned tempTag = pMemoryAddr / blockSizeOfDCache / dCacheLength;
     for (unsigned i = 0; i < setAssOfDCache; i++) {
@@ -186,10 +186,12 @@ int checkDCacheHit(unsigned pMemoryAddr) {
             dCache[cacheIdx][i].MRU = 1;
             if (chkDCacheMRUAllOne(cacheIdx) == 1)
                 clearDCacheMRU(cacheIdx, i);
+            puts("dCache hit!\n");
             dCacheHit++;
             return 1;
         }
     }
+    puts("dCache miss!\n");
     dCacheMiss++;
     return 0;
 }
